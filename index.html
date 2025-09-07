@@ -70,7 +70,6 @@ hr{border:0;height:1px;background:#ffffff14;margin:14px 0}
 
 /* админ */
 .admin-pill{background:#ffd87622;border:1px solid #ffd87666;color:#ffd876;padding:2px 8px;border-radius:8px;font-size:12px}
-
 </style>
 </head>
 <body>
@@ -127,7 +126,7 @@ hr{border:0;height:1px;background:#ffffff14;margin:14px 0}
     <div class="small" id="weeklyNote" style="margin-top:6px;color:#ffd876"></div>
   </div>
 
-  <!-- Магазин -->
+  <!-- Магазин (карточка) -->
   <div class="card" style="margin-top:10px">
     <div class="section-title">Магазин</div>
     <div class="chips" id="shopTabs">
@@ -160,7 +159,7 @@ hr{border:0;height:1px;background:#ffffff14;margin:14px 0}
 
 </div>
 
-<!-- Модалки -->
+<!-- === МОДАЛКИ (унифицированные, все с data-close на ✖) === -->
 <div id="modalShop" class="modal"><div class="sheet">
   <div class="row" style="justify-content:space-between;align-items:center">
     <b>Магазин</b><button class="btn" data-close>✖</button>
@@ -216,7 +215,7 @@ hr{border:0;height:1px;background:#ffffff14;margin:14px 0}
   <div class="row" style="justify-content:space-between;align-items:center">
     <b>Визит к другу</b><button class="btn" data-close>✖</button>
   </div>
-  <div class="small">Друг присылает свой «снапшот-код» (текст). Вставь ниже, чтобы посмотреть его питомца.</div>
+  <div class="small">Друг присылает свой «снапшот-код». Вставь ниже, чтобы посмотреть его питомца.</div>
   <textarea id="visitCode" rows="5" style="width:100%;margin-top:8px"></textarea>
   <div class="row" style="margin-top:8px">
     <button class="btn primary" id="visitPreview">Открыть</button>
@@ -226,13 +225,12 @@ hr{border:0;height:1px;background:#ffffff14;margin:14px 0}
 </div></div>
 
 <script>
-/* ========== КОНСТАНТЫ ========== */
-const OWNER_ID = 1907547038;       // только у владельца — админ-панель
-const BACKEND_URL = "";            // укажешь позже — включится глобальный рейтинг
-const CHEST_COOLDOWN_MS = 4*60*60*1000;  // 4 часа
-const WEEKLY_DAYS_GOAL = 3;        // сколько дней счастье ≥90 для награды
+/* ===== Константы ===== */
+const OWNER_ID = 1907547038;
+const BACKEND_URL = "";
+const CHEST_COOLDOWN_MS = 4*60*60*1000;
 
-/* ========== УТИЛС ========== */
+/* ===== Утилиты ===== */
 const $=sel=>document.querySelector(sel);
 const $$=sel=>document.querySelectorAll(sel);
 const now=()=>Date.now();
@@ -241,7 +239,7 @@ const fmt=(n)=>new Intl.NumberFormat('ru-RU').format(n);
 const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d;}catch{ return d; }};
 
-/* ========== СОСТОЯНИЕ ========== */
+/* ===== Состояние ===== */
 let state = load('tg_state',{
   user:{id:1907547038,first_name:'Игрок'},
   stats:{happy:70,energy:70,clean:70},
@@ -251,11 +249,13 @@ let state = load('tg_state',{
   shop:{interior:'default'},
   evol:1,
   quests:{items:[],resetAt:0,progress:{}},
-  ach:{}, // id:true
+  ach:{},
   chestAt:0,
-  weekly:{weekKey:'', daysHappy:0, rewarded:false},
   leaderboardLocal:[],
 });
+let session = {_feed:0,_runScore:0,_emo:0};
+
+/* ===== Данные магазина ===== */
 const ROOMS={
   default:{name:'Обычная комната',price:0, bg:'linear-gradient(180deg,#101826,#0b1320)'},
   wood:{name:'Деревянная',price:120,bg:'url(https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?auto=format&fit=crop&w=900&q=60)'},
@@ -263,51 +263,30 @@ const ROOMS={
   neon:{name:'Неон',price:220,bg:'url(https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?auto=format&fit=crop&w=900&q=60)'}
 };
 const ITEMS=[
-  {id:'apple',name:'Яблоко',desc:'+15 Еда/Энергия/Чистота по чуть-чуть',price:10},
+  {id:'apple',name:'Яблоко',desc:'+немного ко всем статам',price:10},
   {id:'cleaner',name:'Мыло',desc:'Чистота +30',price:24},
   {id:'toy',name:'Игрушка',desc:'Счастье +25',price:35},
-  {id:'gold',name:'Золотое яблоко',desc:'Полное восстановление',craft:true}
+  {id:'gold',name:'Золотое яблоко',desc:'Полное восстановление (крафт из 3 яблок)',craft:true}
 ];
 const PREMIUM=[
   {id:'bow',name:'Бантик',price:0, premium:true},
   {id:'shades',name:'Очки',price:0, premium:true},
   {id:'crown',name:'Корона',price:0, premium:true},
 ];
-const ACHS=[
-  {id:'feed10',name:'Молодец-кормилец',cond:s=>s._feed>=10, reward:20},
-  {id:'first100',name:'Соточка счастья',cond:s=>s.stats.happy>=100, reward:10},
-  {id:'rich',name:'Копилка',cond:s=>s.coins>=500, reward:50},
-  {id:'runner',name:'Быстрые лапки',cond:s=>s._runScore>=150, reward:25},
-];
-const DAILY_POOL=[
-  {id:'q_feed3', text:'Покорми питомца 3 раза', type:'feed',need:3, reward:20},
-  {id:'q_game1', text:'Сыграй в мини-игру 1 раз', type:'run',need:1, reward:15},
-  {id:'q_clean1',text:'Повышай чистоту 1 раз', type:'clean',need:1, reward:10},
-  {id:'q_sleep1',text:'Уложи спать 1 раз', type:'sleep',need:1, reward:10},
-  {id:'q_emo5', text:'Отправь 5 эмоций', type:'emo',need:5, reward:10},
-];
 
-let session = {_feed:0,_runScore:0, _emo:0};
-
-/* ========== ИНИТ ========== */
+/* ===== Инициализация ===== */
 function init(){
-  // avatar/hello
   $('#hello').textContent = `Привет, ${state.user.first_name || 'друг'}!`;
   if(state.user.id===OWNER_ID) $('#isAdmin').classList.remove('hidden');
-  // room bg
   applyInterior();
-  // отрисовка
   render();
-  // ежедневные квесты
   bootstrapDaily();
-  // недельное событие
-  updateWeeklyNote();
+  buildShop(); // сразу показать товары на карточке
 }
-document.addEventListener('DOMContentLoaded',init);
+document.addEventListener('DOMContentLoaded', init);
 
-/* ========== РЕНДЕР ========= */
+/* ===== Рендер/логика ===== */
 function render(){
-  // полоски
   $('#bH').style.width = clamp(state.stats.happy,0,100)+'%';
   $('#bE').style.width = clamp(state.stats.energy,0,100)+'%';
   $('#bC').style.width = clamp(state.stats.clean,0,100)+'%';
@@ -315,57 +294,43 @@ function render(){
   $('#coins').textContent = fmt(state.coins);
   $('#level').textContent = state.level;
 
-  // эволюция
   const stage = calcEvolution();
   const pet = $('#pet');
   pet.classList.remove('pet-stage-1','pet-stage-2','pet-stage-3');
   pet.classList.add(`pet-stage-${stage}`);
 }
-
-/* ========== ЭВОЛЮЦИЯ ========= */
 function calcEvolution(){
   const score = state.level*50 + (state.stats.happy+state.stats.energy+state.stats.clean);
-  let ev = 1;
-  if(score>=260) ev=3;
-  else if(score>=200) ev=2;
-  state.evol = ev;
-  return ev;
+  return score>=260?3:score>=200?2:1;
 }
-
-/* ========== ИНТЕРЬЕР ========= */
 function applyInterior(){
   const key = state.shop.interior || 'default';
   const room = ROOMS[key] || ROOMS.default;
   $('#room').style.background = room.bg;
 }
-
-/* ========== СОХР/ЗАГР ========= */
 function persist(){ save('tg_state',state); }
-$('#btnSave').onclick=persist;
-$('#btnReset').onclick=()=>{ if(confirm('Сбросить прогресс?')){ localStorage.removeItem('tg_state'); location.reload(); }};
 
-/* ========== ДЕЙСТВИЯ ========= */
+/* ===== Действия ===== */
 $('#btnFeed').onclick=()=>{
-  if(state.inventory.apple<=0 && state.inventory.goldenApple<=0){ toast('Нужно яблоко! Купи в магазине'); return;}
   if(state.inventory.goldenApple>0){
     state.inventory.goldenApple--; state.stats.happy=state.stats.energy=state.stats.clean=100;
-    toast('Золотое яблоко! Все статы полные ✨'); grantAch('first100');
-  } else {
+    toast('Золотое яблоко! Все статы полные ✨');
+  } else if (state.inventory.apple>0){
     state.inventory.apple--; state.stats.happy=clamp(state.stats.happy+8,0,100);
     state.stats.energy=clamp(state.stats.energy+8,0,100);
     state.stats.clean =clamp(state.stats.clean +5,0,100);
-  }
-  session._feed++; bumpQuest('feed',1); grantAchMaybe();
-  fxEmoji('🍎'); render(); persist();
+  } else { return toast('Нужно яблоко! Купи в магазине'); }
+  session._feed++; bumpQuest('feed',1);
+  persist(); render();
 };
 $('#btnSleep').onclick=()=>{
   state.stats.energy=clamp(state.stats.energy+28,0,100);
   state.stats.clean =clamp(state.stats.clean -6 ,0,100);
-  bumpQuest('sleep',1); fxEmoji('😴'); render(); persist();
+  bumpQuest('sleep',1); persist(); render();
 };
-$('#btnPlay').onclick=()=>openModal('#modalRun');
-$('#btnQuest').onclick=()=>openModal('#modalQuests');
-$('#btnAch').onclick =()=>openModal('#modalAch');
+$('#btnPlay').onclick=()=>{ openModal('#modalRun'); };
+$('#btnQuest').onclick=()=>{ renderQuests(); openModal('#modalQuests'); };
+$('#btnAch').onclick =()=>{ renderAch(); openModal('#modalAch'); };
 $('#btnShop').onclick =()=>{ buildShop(); openModal('#modalShop'); };
 $('#btnSettings').onclick =()=>toast('Открыты настройки ниже ⤵️');
 
@@ -377,110 +342,122 @@ $('#reactionBar').addEventListener('click',(e)=>{
 
 /* Сундук */
 $('#btnChest').onclick=()=>{
-  const nowTs = now();
-  if(state.chestAt && nowTs < state.chestAt){ const left = Math.ceil((state.chestAt-nowTs)/60000); toast(`Сундук будет через ~${left} мин`); return; }
-  // награда
+  const ts = now();
+  if(state.chestAt && ts<state.chestAt){
+    const left = Math.ceil((state.chestAt-ts)/60000);
+    return toast(`Сундук будет через ~${left} мин`);
+  }
   const roll = Math.random();
   if(roll<.5){ const c= 15+Math.floor(Math.random()*21); state.coins+=c; toast(`+${c} Seeds из сундука 💰`); }
-  else if(roll<.8){ state.inventory.apple+=1; toast(`+1 яблоко 🍎`); }
-  else { state.inventory.goldenApple+=1; toast(`Золотое яблоко ✨`); }
-  state.chestAt = now()+CHEST_COOLDOWN_MS; grantAchMaybe(); persist(); render();
+  else if(roll<.8){ state.inventory.apple=(state.inventory.apple||0)+1; toast(`+1 яблоко 🍎`); }
+  else { state.inventory.goldenApple=(state.inventory.goldenApple||0)+1; toast(`Золотое яблоко ✨`); }
+  state.chestAt = ts+CHEST_COOLDOWN_MS; persist(); render();
 };
 
-/* ========== МАГАЗИН ========= */
+/* ===== Магазин (карточка и модалка) ===== */
 function buildShop(){
-  const tab = $('#shopTabs .chip.active')?.dataset.tab || 'items';
-  const box = $('#mShop'); box.innerHTML='';
-  const addItem=(title,desc,price,action,disabled=false,tag='')=>{
-    const el=document.createElement('div'); el.className='item';
-    el.innerHTML=`
-      <div><div>
-        <div><b>${title}</b> ${tag?`<span class="tag">${tag}</span>`:''}</div>
-        <div class="small">${desc}</div>
-      </div></div>
-      <div>
-        <span class="price">💰 ${price}</span>
-        <button class="btn ${disabled?'hidden':''}">Купить</button>
-      </div>`;
-    el.querySelector('button')?.addEventListener('click',action);
-    box.appendChild(el);
-  };
-
-  if(tab==='items'){
-    ITEMS.forEach(it=>{
-      if(it.craft){ // показать крафт
-        const can = state.inventory.apple>=3;
-        addItem('Золотое яблоко (крафт)','3 яблока → 1 золотое', '—', ()=>{
-          if(state.inventory.apple<3) return toast('Нужно 3 яблока');
-          state.inventory.apple-=3; state.inventory.goldenApple+=1; toast('Скрафтил ✨ Золотое яблоко');
-          persist(); render();
-        }, !can, 'CRAFT');
-      } else {
-        addItem(it.name,it.desc,it.price,()=>{
-          if(state.coins<it.price) return toast('Не хватает монет');
-          state.coins-=it.price; state.inventory[it.id]=(state.inventory[it.id]||0)+1;
-          toast(`Куплено: ${it.name}`); persist(); render();
-        });
-      }
-    });
-  }
-  if(tab==='interiors'){
-    Object.entries(ROOMS).forEach(([id,room])=>{
-      const owned = (id==='default') || state.shop[id];
-      addItem(room.name, owned?'Куплено':'Фон комнаты', room.price || 0, ()=>{
-        if(!owned){
-          if(state.coins<room.price) return toast('Не хватает монет');
-          state.coins-=room.price; state.shop[id]=true;
+  const tab = document.querySelector('#shopTabs .chip.active')?.dataset.tab || 'items';
+  const boxModal = $('#mShop');
+  const boxCard  = $('#shopList');
+  const renderInto = (host)=>{
+    if(!host) return; host.innerHTML='';
+    const addItem=(title,desc,price,action,disabled=false,tag='')=>{
+      const el=document.createElement('div'); el.className='item';
+      el.innerHTML=`
+        <div><div>
+          <div><b>${title}</b> ${tag?`<span class="tag">${tag}</span>`:''}</div>
+          <div class="small">${desc||''}</div>
+        </div></div>
+        <div>
+          ${price!=='—'?`<span class="price">💰 ${price}</span>`:`<span class="tag">FREE</span>`}
+          <button class="btn ${disabled?'hidden':''}">Купить</button>
+        </div>`;
+      el.querySelector('button')?.addEventListener('click',action);
+      host.appendChild(el);
+    };
+    if(tab==='items'){
+      ITEMS.forEach(it=>{
+        if(it.craft){
+          const can=(state.inventory.apple||0)>=3;
+          addItem('Золотое яблоко (крафт)','3 яблока → 1 золотое','—',()=>{
+            if((state.inventory.apple||0)<3) return toast('Нужно 3 яблока');
+            state.inventory.apple-=3; state.inventory.goldenApple=(state.inventory.goldenApple||0)+1;
+            toast('Скрафтил ✨ Золотое яблоко'); persist(); render();
+          }, !can, 'CRAFT');
+        }else{
+          addItem(it.name,it.desc,it.price,()=>{
+            if(state.coins<it.price) return toast('Не хватает монет');
+            state.coins-=it.price;
+            state.inventory[it.id]=(state.inventory[it.id]||0)+1;
+            toast(`Куплено: ${it.name}`); persist(); render();
+          });
         }
-        state.shop.interior=id; applyInterior(); persist(); render();
-      }, (id==='default' && state.shop.interior==='default'), owned?'OWNED':'');
-    });
-  }
-  if(tab==='premium'){
-    PREMIUM.forEach(p=>{
-      const has = !!state.inventory.accessories[p.id];
-      addItem(p.name,'Аксессуар (косметика, без преимуществ)','—',()=>{
-        state.inventory.accessories[p.id]=true;
-        toast('Аксессуар выдан'); persist();
-      }, has,'FREE');
-    });
-  }
+      });
+    }
+    if(tab==='interiors'){
+      Object.entries(ROOMS).forEach(([id,room])=>{
+        const owned=(id==='default')||state.shop[id];
+        addItem(room.name, owned?'Куплено':'Фон комнаты', room.price||0, ()=>{
+          if(!owned){
+            if(state.coins<(room.price||0)) return toast('Не хватает монет');
+            state.coins-=(room.price||0); state.shop[id]=true;
+          }
+          state.shop.interior=id; applyInterior(); persist(); render();
+        }, (id==='default' && state.shop.interior==='default'), owned?'OWNED':'');
+      });
+    }
+    if(tab==='premium'){
+      PREMIUM.forEach(p=>{
+        const has = !!(state.inventory.accessories||{})[p.id];
+        addItem(p.name,'Аксессуар (косметика, без преимуществ)','—',()=>{
+          state.inventory.accessories=state.inventory.accessories||{};
+          state.inventory.accessories[p.id]=true;
+          toast('Аксессуар выдан'); persist(); render();
+        }, has, 'FREE');
+      });
+    }
+  };
+  renderInto(boxModal);
+  renderInto(boxCard);
 }
 $('#shopTabs').addEventListener('click',(e)=>{
   const t=e.target.closest('.chip'); if(!t) return;
-  $('#shopTabs .chip.active')?.classList.remove('active'); t.classList.add('active');
+  $('#shopTabs .chip.active')?.classList.remove('active');
+  t.classList.add('active');
   buildShop();
 });
 
-/* ========== ЕЖЕДНЕВНЫЕ КВЕСТЫ ========== */
+/* ===== Квесты ===== */
+const DAILY_POOL=[
+  {id:'q_feed3', text:'Покорми питомца 3 раза', type:'feed',need:3, reward:20},
+  {id:'q_game1', text:'Сыграй в мини-игру 1 раз', type:'run',need:1, reward:15},
+  {id:'q_clean1',text:'Повышай чистоту 1 раз', type:'clean',need:1, reward:10},
+  {id:'q_sleep1',text:'Уложи спать 1 раз', type:'sleep',need:1, reward:10},
+  {id:'q_emo5', text:'Отправь 5 эмоций', type:'emo',need:5, reward:10},
+];
 function bootstrapDaily(){
   if(!state.quests.resetAt || now()>state.quests.resetAt){
     const items = pickRandom(DAILY_POOL,3);
     state.quests.items = items;
     state.quests.progress = Object.fromEntries(items.map(q=>[q.id,0]));
-    state.quests.resetAt = todayUTC()+24*60*60*1000; // завтра 00:00 UTC
+    state.quests.resetAt = todayUTC()+24*60*60*1000;
     persist();
   }
-  renderQuests();
-  tickQuestTimer();
+  renderQuests(); tickQuestTimer();
 }
 function renderQuests(){
-  const box = $('#questList'); box.innerHTML='';
+  const box=$('#questList'); box.innerHTML='';
   state.quests.items.forEach(q=>{
-    const cur = state.quests.progress[q.id]||0;
-    const done = cur>=q.need;
+    const cur=state.quests.progress[q.id]||0;
+    const done=cur>=q.need;
     const el=document.createElement('div'); el.className='item';
     el.innerHTML=`<div><div><b>${q.text}</b></div><div class="small">Прогресс: ${cur}/${q.need}</div></div>
-      <div>${done?`<span class="badge">Награда: ${q.reward}</span>`:`<button class="btn ok">Забрать (${q.reward})</button>`}</div>`;
-    if(!done) el.querySelector('button')?.addEventListener('click',()=>{
-      if(state.quests.progress[q.id]<q.need) return toast('Задание ещё не выполнено');
-    });
-    if(done) el.querySelector('button')?.remove();
-    if(done && !el.querySelector('.badge')){/*noop*/}
-    if(done){ // выдача по клику на правую часть
-      el.querySelector('div:last-child').addEventListener('click',()=>{
-        if(state.quests.progress[q.id]===Infinity) return; // уже забрано
-        state.coins+=q.reward; state.quests.progress[q.id]=Infinity; toast(`+${q.reward} Seeds`);
+      <div>${done?`<span class="badge">Награда: ${q.reward}</span>`:`<span class="tag">В процессе</span>`}</div>`;
+    if(done){
+      el.addEventListener('click',()=>{
+        if(state.quests.progress[q.id]===Infinity) return;
+        state.coins+=q.reward; state.quests.progress[q.id]=Infinity;
+        toast(`+${q.reward} Seeds`);
         render(); renderQuests(); persist();
       });
     }
@@ -490,36 +467,41 @@ function renderQuests(){
 function bumpQuest(type,delta){
   state.quests.items.forEach(q=>{
     if(q.type===type && state.quests.progress[q.id]!==Infinity){
-      state.quests.progress[q.id] = clamp((state.quests.progress[q.id]||0)+delta,0,q.need);
+      state.quests.progress[q.id]=clamp((state.quests.progress[q.id]||0)+delta,0,q.need);
     }
   });
   renderQuests(); persist();
 }
 function tickQuestTimer(){
-  const left = Math.max(0, state.quests.resetAt-now());
-  $('#questLeft').textContent = fmtTime(left);
-  if(left<=0) bootstrapDaily();
+  const left=Math.max(0,state.quests.resetAt-now());
+  $('#questLeft').textContent=fmtTime(left);
   setTimeout(tickQuestTimer,1000);
 }
 function todayUTC(){
   const d=new Date(); return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());
 }
 function fmtTime(ms){
-  const s=Math.floor(ms/1000); const h=Math.floor(s/3600); const m=Math.floor((s%3600)/60); const ss=s%60;
+  const s=Math.floor(ms/1000),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;
   return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
 }
-function pickRandom(arr,n){
-  const a=[...arr]; const out=[]; while(out.length<n && a.length){ out.push(a.splice(Math.floor(Math.random()*a.length),1)[0]); }
-  return out;
-}
+function pickRandom(arr,n){const a=[...arr],out=[];while(out.length<n&&a.length){out.push(a.splice(Math.floor(Math.random()*a.length),1)[0]);}return out;}
 
-/* ========== ДОСТИЖЕНИЯ ========== */
-function grantAch(id){ state.ach[id]=true; persist(); renderAch(); }
+/* ===== Достижения (простые) ===== */
+const ACHS=[
+  {id:'feed10',name:'Молодец-кормилец',cond:s=>s._feed>=10, reward:20},
+  {id:'first100',name:'Соточка счастья',cond:s=>s.stats.happy>=100, reward:10},
+  {id:'runner',name:'Быстрые лапки',cond:s=>s._runScore>=150, reward:25},
+];
 function grantAchMaybe(){
-  ACHS.forEach(a=>{ try{ if(!state.ach[a.id] && a.cond({...state,...session})) { state.ach[a.id]=true; state.coins+=a.reward; toast(`🏆 Достижение: ${a.name} (+${a.reward})`); } }catch{} });
+  ACHS.forEach(a=>{
+    try{
+      if(!state.ach[a.id] && a.cond({...state,...session})){
+        state.ach[a.id]=true; state.coins+=a.reward; toast(`🏆 ${a.name} (+${a.reward})`);
+      }
+    }catch{}
+  });
   persist(); render(); renderAch();
 }
-$('#btnAch').onclick=()=>{ renderAch(); openModal('#modalAch'); };
 function renderAch(){
   const box=$('#achList'); box.innerHTML='';
   ACHS.forEach(a=>{
@@ -531,16 +513,17 @@ function renderAch(){
   });
 }
 
-/* ========== МИНИ-ИГРА ========= */
+/* ===== Мини-игра (с корректным закрытием) ===== */
 let runTimer=null, runLeft=10.0, runScore=0;
 $('#runStart').onclick=()=>{
-  if(runTimer){ return; }
+  if(runTimer) return;
   runLeft=10.0; runScore=0; $('#runBar').style.width='0%'; $('#runScore').textContent=runScore; $('#runTime').textContent=runLeft.toFixed(1);
   const tap=()=>{ if(!runTimer) return; runScore++; $('#runScore').textContent=runScore; $('#runBar').style.width=Math.min(100,runScore)+'%'; };
   $('#gameRun').onclick=tap;
   runTimer=setInterval(()=>{
     runLeft=Math.max(0,runLeft-0.1); $('#runTime').textContent=runLeft.toFixed(1);
-    if(runLeft<=0){ clearInterval(runTimer); runTimer=null; $('#gameRun').onclick=null;
+    if(runLeft<=0){
+      clearInterval(runTimer); runTimer=null; $('#gameRun').onclick=null;
       const reward = Math.min(60, 10+Math.floor(runScore/3));
       state.coins+=reward; session._runScore=runScore; grantAchMaybe();
       toast(`Финиш! +${reward} Seeds`);
@@ -549,16 +532,18 @@ $('#runStart').onclick=()=>{
   },100);
 };
 
-/* ========== ЛИДЕРБОРДЫ ========== */
+/* ===== Лидерборды ===== */
 $('#btnLB').onclick=()=>{ renderLB(); openModal('#modalLB'); };
 $('#syncLocal').onclick=()=>{ pushLocalScore(); renderLB(); };
-$('#pushGlobal').onclick=()=>{ if(!BACKEND_URL){ toast('Глобальный сервер не подключен'); return; } pushGlobal(); };
-$('#pullGlobal').onclick=()=>{ if(!BACKEND_URL){ toast('Глобальный сервер не подключен'); return; } getGlobal(); };
+$('#pushGlobal').onclick=()=>{ if(!BACKEND_URL) return toast('Глобальный сервер не подключен'); pushGlobal(); };
+$('#pullGlobal').onclick=()=>{ if(!BACKEND_URL) return toast('Глобальный сервер не подключен'); getGlobal(); };
 
 function pushLocalScore(){
   const score = Math.round(state.stats.happy*2 + state.coins*0.2 + state.level*5);
   const item ={name:state.user.first_name||'Игрок', score, time:new Date().toISOString()};
-  state.leaderboardLocal.unshift(item); state.leaderboardLocal=state.leaderboardLocal.slice(0,20); persist();
+  state.leaderboardLocal.unshift(item);
+  state.leaderboardLocal=state.leaderboardLocal.slice(0,20);
+  persist();
 }
 function renderLB(){
   $('#lbInfo').textContent = BACKEND_URL? 'Глобальный доступен':'Глобальный отключён (ожидает BACKEND_URL)';
@@ -588,34 +573,11 @@ async function getGlobal(){
   }catch{ toast('Не удалось получить топ'); }
 }
 
-/* ========== НЕДЕЛЬНОЕ СОБЫТИЕ ========= */
-function weekKey(){
-  const d=new Date(); const y=d.getUTCFullYear(); const w=Math.floor((Date.UTC(y,d.getUTCMonth(),d.getUTCDate())-Date.UTC(y,0,1))/(7*24*3600*1000));
-  return `${y}-W${w}`;
-}
-function updateWeeklyNote(){
-  const key=weekKey();
-  if(state.weekly.weekKey!==key){ // новая неделя
-    state.weekly={weekKey:key,daysHappy:0,rewarded:false};
-  }
-  const d=new Date(); const todayKey=d.toDateString();
-  // засчитываем день если счастье >=90 и ещё не считали сегодня
-  let mark=load('week_mark','');
-  if(state.stats.happy>=90 && mark!==todayKey){
-    state.weekly.daysHappy++; save('week_mark',todayKey); persist();
-  }
-  const leftDays = 7 - d.getUTCDay(); // просто подсказка
-  $('#weeklyNote').textContent = `Неделя счастья: ${state.weekly.daysHappy}/7 • осталось дней ~${leftDays}`;
-  if(!state.weekly.rewarded && state.weekly.daysHappy>=WEEKLY_DAYS_GOAL){
-    state.coins+=100; state.weekly.rewarded=true; toast('Награда недели: +100 Seeds!'); persist(); render();
-  }
-}
-
-/* ========== ВИЗИТ К ДРУГУ (снапшот) ========== */
+/* ===== Экспорт/визит ===== */
 $('#btnSnapshot').onclick=()=>{
   const data = {pet:state.stats, deco:state.shop, name:state.user.first_name, happy:state.stats.happy};
   const code = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
-  copy(code); toast('Снапшот скопирован в буфер. Отправь другу!');
+  copy(code); toast('Снапшот скопирован. Отправь другу!');
 };
 $('#btnVisit').onclick = ()=>openModal('#modalVisit');
 $('#visitPreview').onclick=()=>{
@@ -635,23 +597,53 @@ $('#visitGiveHeart').onclick=()=>{
   }catch{ $('#visitState').textContent='Неверный код'; }
 };
 
-/* ========== АДМИН-ПАНЕЛЬ ========== */
+/* ===== Админ-панель ===== */
 if(state.user.id===OWNER_ID) $('#devPanel').classList.remove('hidden');
 $('#devCoins').onclick=()=>{ state.coins+=1000; render(); persist(); };
 $('#devAcc').onclick =()=>{ state.inventory.accessories={bow:true,shades:true,crown:true}; persist(); toast('Аксессуары выданы'); };
 $('#devMax').onclick  =()=>{ state.stats={happy:100,energy:100,clean:100}; render(); persist(); };
 
-/* ========== ВСПОМОГАТЕЛЬНОЕ ========= */
+/* ===== Менеджер модалок (универсальный) ===== */
+function openModal(sel){
+  const m = document.querySelector(sel);
+  if(!m) return;
+  if(m.classList.contains('show')) return;
+  m.classList.add('show');
+
+  const onClick = (ev)=>{
+    const isBackdrop = (ev.target === m);
+    const isCloseBtn = ev.target?.dataset?.close !== undefined;
+    if (isBackdrop || isCloseBtn) {
+      closeModal(sel);
+    }
+  };
+  m._onClick = onClick;
+  m.addEventListener('click', onClick);
+
+  // Спец: при открытии магазина — обновим витрину
+  if(sel==='#modalShop') buildShop();
+}
+function closeModal(sel){
+  const m = document.querySelector(sel);
+  if(!m) return;
+  m.classList.remove('show');
+  if (m._onClick) { m.removeEventListener('click', m._onClick); m._onClick=null; }
+
+  // Спец: мини-игра — стоп таймер и клики
+  if (sel === '#modalRun') {
+    try { clearInterval(runTimer); runTimer=null; $('#gameRun').onclick=null; } catch(e){}
+  }
+}
+
+/* ===== Вспомогательное ===== */
 function fxEmoji(e){
   const box=$('#fx'); const el=document.createElement('div'); el.className='emoji'; el.textContent=e;
   const x= 80+Math.random()*100, y=120+Math.random()*40;
   el.style.left=x+'px'; el.style.top=y+'px'; box.appendChild(el);
   setTimeout(()=>el.remove(),1200);
 }
-function openModal(sel){ const m=$(sel); m.classList.add('show'); m.addEventListener('click',ev=>{ if(ev.target===m || ev.target.dataset.close!==undefined) m.classList.remove('show'); },{once:true});}
 function toast(t){ const el=document.createElement('div'); el.textContent=t; Object.assign(el.style,{position:'fixed',bottom:'18px',left:'50%',transform:'translateX(-50%)',padding:'10px 14px',borderRadius:'12px',background:'#000c',border:'1px solid #fff2',color:'#fff',zIndex:40}); document.body.appendChild(el); setTimeout(()=>el.remove(),2000); }
 function copy(text){ navigator.clipboard?.writeText(text).catch(()=>{}); }
-
 </script>
 </body>
 </html>
