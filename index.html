@@ -1,10 +1,109 @@
 <!doctype html>
-<html>
+<html lang="ru">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Tamagocho</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root{
+      --bg:#0f1620; --card:#151f2e; --text:#e6eef8; --muted:#9bb2d0;
+      --accent:#87ceeb; --ok:#34d399; --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Arial}
+    .wrap{max-width:420px;margin:0 auto;padding:18px 16px 32px}
+    .card{background:var(--card);border-radius:20px;padding:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .row{display:flex;gap:10px}
+    .header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+    .avatar{width:72px;height:72px;border-radius:16px;object-fit:cover}
+    h1{font-size:20px;margin:0 0 4px}
+    .muted{color:var(--muted);font-size:14px}
+    .pet-box{display:flex;flex-direction:column;align-items:center;padding:12px 0 6px}
+    .pet{width:260px;height:260px;border-radius:24px;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+    .bars{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+    .bar{background:#0e1520;border-radius:12px;padding:10px}
+    .bar label{display:flex;justify-content:space-between;margin-bottom:6px;font-size:14px}
+    progress{width:100%;height:10px;border:none;border-radius:8px;background:#0a1020}
+    progress::-webkit-progress-bar{background:#0a1020;border-radius:8px}
+    progress::-webkit-progress-value{border-radius:8px;background:linear-gradient(90deg,var(--ok),var(--accent))}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    button{padding:12px;border:0;border-radius:12px;font-weight:700;color:#08111f;background:#1e2a3d;cursor:pointer}
+    button:hover{filter:brightness(1.08)}
+    .feed{background:linear-gradient(180deg,#1f2d3f,#27465d)}
+    .play{background:linear-gradient(180deg,#24384e,#2c5a6b)}
+    .footer{margin-top:14px;text-align:center;font-size:12px;color:var(--muted)}
+  </style>
 </head>
 <body>
-  <h1>Привет! Mini App работает 🚀</h1>
+  <div class="wrap">
+    <div class="card">
+      <div class="header">
+        <img class="avatar" src="pet_neural.png" alt="pet">
+        <div>
+          <h1 id="greet">Tamagocho</h1>
+          <div class="muted">Заботься о питомце: корми и играй!</div>
+        </div>
+      </div>
+
+      <div class="pet-box">
+        <img class="pet" src="pet_neural.png" alt="pet big">
+      </div>
+
+      <div class="bars">
+        <div class="bar">
+          <label><span>🍗 Сытость</span><span id="satietyLabel">60</span></label>
+          <progress id="satiety" value="60" max="100"></progress>
+        </div>
+        <div class="bar">
+          <label><span>🎉 Настроение</span><span id="moodLabel">60</span></label>
+          <progress id="mood" value="60" max="100"></progress>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="feed" id="feedBtn">🍗 Кормить</button>
+        <button class="play" id="playBtn">🎲 Играть</button>
+      </div>
+
+      <div class="footer">v0.1 • локальное демо без бэкенда</div>
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram?.WebApp; 
+    if (tg) { tg.ready(); }
+
+    const user = tg?.initDataUnsafe?.user;
+    const greet = document.getElementById('greet');
+    if (user?.first_name) greet.textContent = `Привет, ${user.first_name}!`;
+
+    // Простейшая логика
+    let sat = 60, mood = 60;
+    const satBar = document.getElementById('satiety');
+    const moodBar = document.getElementById('mood');
+    const satLbl = document.getElementById('satietyLabel');
+    const moodLbl = document.getElementById('moodLabel');
+
+    function clamp(x){ return Math.max(0, Math.min(100, x)); }
+    function render(){
+      satBar.value = sat; moodBar.value = mood;
+      satLbl.textContent = sat; moodLbl.textContent = mood;
+    }
+    function vibrate(){ try{ tg?.HapticFeedback?.impactOccurred('light'); }catch(e){} }
+
+    document.getElementById('feedBtn').onclick = ()=>{
+      sat = clamp(sat + 8); mood = clamp(mood + 2); render(); vibrate();
+      tg?.showPopup?.({title:"Питомец сыт!", message:"Спасибо за вкусняшку 🍗"});
+    };
+    document.getElementById('playBtn').onclick = ()=>{
+      mood = clamp(mood + 8); sat = clamp(sat - 2); render(); vibrate();
+      tg?.showPopup?.({title:"Было весело!", message:"Питомец доволен 🎉"});
+    };
+
+    // Пассивная деградация раз в 20 секунд (для теста)
+    setInterval(()=>{ sat=clamp(sat-2); mood=clamp(mood-1); render(); }, 20000);
+    render();
+  </script>
 </body>
 </html>
