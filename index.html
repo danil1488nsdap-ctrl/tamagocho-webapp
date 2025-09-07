@@ -1,707 +1,657 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tamagocho</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <style>
-    :root{
-      --bg:#0f1620; --card:#151e2f; --muted:#8bb2d0; --text:#e6eef8;
-      --accent:#80d2ee; --ok:#34d399; --warn:#f59e0b; --bad:#ef4444;
-      --shadow:0 10px 30px rgba(0,0,0,.35);
-      --brand:#87CEEB;
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    .wrap{max-width:480px;margin:0 auto;padding:18px 12px}
-    .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:14px}
-    .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
-    .header{align-items:center;gap:12px;margin-bottom:12px}
-    .avatar{width:72px;height:72px;border-radius:16px;object-fit:cover;border:2px solid var(--brand)}
-    h1{font-size:18px;margin:0 0 2px}
-    .muted{color:var(--muted);font-size:13px}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tamagocho</title>
+<link rel="icon" href="data:,">
+<style>
+:root{
+  --bg:#0f1620;--card:#151e2e;--text:#e6eef8;--muted:#9bb2d0;
+  --ok:#34d399;--warn:#f59e0b;--accent:#80d8ee;
+  --red:#ef4444;--green:#22c55e;--blue:#3b82f6;--violet:#8b5cf6;
+}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Arial}
+.wrap{max-width:420px;margin:0 auto;padding:16px 16px 80px}
+.card{background:var(--card);border-radius:16px;padding:14px 14px;box-shadow:0 10px 28px rgba(0,0,0,.35)}
+.row{display:flex;gap:10px}
+.header{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.avatar{width:54px;height:54px;border-radius:50%;object-fit:cover;border:2px solid #0003}
+h1{font-size:20px;margin:0}
+.muted{color:var(--muted);font-size:13px}
+.pet-box{display:flex;flex-direction:column;align-items:center;padding:12px 0 6px}
+.pet{width:260px;height:260px;border-radius:24px;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:transform .2s}
+.pet.smile{transform:scale(1.01)}
+.bars{display:flex;gap:8px;margin-top:10px}
+.bar{flex:1;height:9px;background:#0e1220;border-radius:999px;overflow:hidden}
+.bar>i{display:block;height:100%;background:linear-gradient(90deg,#07c98b,#8be9c7)}
+.progress{display:flex;gap:10px;justify-content:space-between;margin-top:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 12px;border-radius:12px;border:1px solid #ffffff14;background:#ffffff0f;color:var(--text);cursor:pointer}
+.btn.ok{background:#10b9811a;border-color:#10b98140}
+.btn.warn{background:#f59f0b1a;border-color:#f59f0b40}
+.btn.primary{background:#3b82f622;border-color:#3b82f677}
+.btn.full{width:100%}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.badge{padding:4px 8px;background:#00000033;border:1px solid #ffffff1c;border-radius:999px;font-size:12px}
+.kv{display:flex;justify-content:space-between;margin:4px 0;color:var(--muted);font-size:13px}
+.section-title{margin:16px 0 8px;font-weight:700}
+.small{font-size:12px;color:var(--muted)}
+.hidden{display:none !important}
+hr{border:0;height:1px;background:#ffffff14;margin:14px 0}
 
-    .pet-box{display:flex;flex-direction:column;align-items:center;padding:10px 6px}
-    .pet{position:relative;width:260px;height:260px;border-radius:18px;overflow:hidden;background:#2b3a4f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
-    .pet img.base{width:100%;height:100%;object-fit:cover}
-    .pet .acc{position:absolute;inset:0;pointer-events:none;display:flex;align-items:flex-start;justify-content:center;font-size:56px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
-    .bars{display:flex;flex-direction:column;gap:8px;margin-top:10px}
-    .bar{height:12px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden}
-    .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),#5eead4);width:50%}
-    .bar .label{margin-top:4px;font-size:12px;color:var(--muted)}
-    .stat-line{display:flex;align-items:center;gap:8px;justify-content:space-between}
+/* модалки */
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;padding:16px;z-index:30}
+.modal.show{display:flex}
+.sheet{width:100%;max-width:480px;background:var(--card);border-radius:16px;padding:14px}
 
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-    .btn{border:none;border-radius:12px;padding:12px;font-weight:600;background:#1f2a44;color:#eaf6ff;box-shadow:var(--shadow)}
-    .btn:active{opacity:.9;transform:translateY(1px)}
-    .btn.ok{background:#1f4337}
-    .btn.warn{background:#4a3514}
-    .btn.accent{background:#17334a}
-    .btn.brand{background:#10435c}
+.list{display:flex;flex-direction:column;gap:8px}
+.item{display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px dashed #ffffff2a;border-radius:12px}
+.item>div{display:flex;align-items:center;gap:10px}
+.price{color:#ffd876}
+.tag{font-size:11px;padding:2px 6px;border-radius:999px;border:1px solid #ffffff24}
+.row-wrap{display:flex;flex-wrap:wrap;gap:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:6px 8px;border-radius:999px;background:#ffffff10;border:1px solid #ffffff20;font-size:12px;cursor:pointer}
+.chip.active{outline:2px solid var(--accent);background:#2a4155}
 
-    .section{margin-top:14px}
-    .pill{background:#12233a;border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted)}
+/* эмоции */
+.fx{position:absolute;pointer-events:none}
+.emoji{position:absolute;font-size:28px;animation:float 1.2s ease-out forwards}
+@keyframes float{from{transform:translateY(0);opacity:.9}to{transform:translateY(-60px);opacity:0}}
+.pet-stage-1{filter:saturate(1)}
+.pet-stage-2{filter:saturate(1.1) drop-shadow(0 0 8px #ffc76a40)}
+.pet-stage-3{filter:saturate(1.2) drop-shadow(0 0 12px #ffd76a60)}
+.room{background-size:cover;background-position:center;border-radius:16px}
 
-    /* Modals */
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px}
-    .modal.show{display:flex}
-    .sheet{background:var(--card);border-radius:16px;max-width:520px;width:100%;max-height:82vh;overflow:auto;box-shadow:var(--shadow);padding:14px}
-    .sheet h2{margin:4px 0 8px;font-size:18px}
-    .shop-list,.inv-list,.quest-list,.lb-list{display:flex;flex-direction:column;gap:10px}
-    .item{display:flex;gap:12px;align-items:center;justify-content:space-between;background:#101b2e;border-radius:12px;padding:10px}
-    .item .meta{display:flex;gap:10px;align-items:center}
-    .price{font-weight:700;color:#ffe08a}
-    .tag{font-size:11px;padding:2px 8px;border-radius:999px;background:#0e253c;color:#a9c6de}
-    .sep{height:1px;background:rgba(255,255,255,.06);margin:10px 0}
+/* мини-игра */
+#gameRun .track{height:18px;background:#0c1320;border-radius:999px;overflow:hidden;margin:8px 0}
+#gameRun .track>i{display:block;height:100%;background:linear-gradient(90deg,#5eead4,#22c55e);width:0%}
+.timer{font-family:monospace}
 
-    .topbar{display:flex;align-items:center;justify-content:space-between}
-    .coins{display:flex;align-items:center;gap:8px;font-weight:700}
-    .coins i{font-style:normal;color:#ffe08a}
-    .level{font-size:12px;color:#a3c7dc}
+/* админ */
+.admin-pill{background:#ffd87622;border:1px solid #ffd87666;color:#ffd876;padding:2px 8px;border-radius:8px;font-size:12px}
 
-    .kbd{font-family:ui-monospace,monospace;background:#0f1d2f;border-radius:6px;padding:2px 6px;border:1px solid rgba(255,255,255,.06);font-size:12px}
-    .hint{color:#9ec5dd;font-size:12px}
-    .mini{font-size:12px;color:#9dbddb}
-
-    .flex{display:flex;gap:8px;align-items:center}
-    .right{margin-left:auto}
-    .danger{color:#ffb4b4}
-    .success{color:#8ff1bd}
-    .hidden{display:none !important}
-  </style>
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="row header card">
-      <div class="row" style="gap:12px">
-        <img class="avatar" src="pet.webp" alt="pet"/>
-        <div>
-          <h1 id="greet">TAMAGOCHO</h1>
-          <div class="level" id="levelText">LVL 1 • EXP 0/100</div>
-          <div class="muted" id="username">Привет!</div>
-        </div>
-      </div>
-      <div class="coins"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18'><circle cx='9' cy='9' r='8' fill='%23ffd866'/><circle cx='7' cy='7' r='2.5' fill='%23ffb400'/></svg>"> <i id="coins">0</i></div>
+<div class="wrap">
+
+  <!-- Header -->
+  <div class="card header">
+    <img id="avatar" class="avatar" src="https://i.pravatar.cc/100" alt="">
+    <div style="flex:1">
+      <h1 style="display:flex;align-items:center;gap:8px">
+        Tamagocho <span id="isAdmin" class="admin-pill hidden">ADMIN</span>
+      </h1>
+      <div class="muted" id="hello">Привет!</div>
     </div>
-
-    <div class="card">
-      <div class="pet-box">
-        <div class="pet" id="petBox">
-          <img class="base" id="petImg" src="pet.webp" alt="Питомец">
-          <div class="acc" id="accLayer"></div>
-        </div>
-        <div class="bars" id="bars">
-          <!-- динамически -->
-        </div>
-        <div class="grid">
-          <button class="btn ok" id="btnFeed">Покормить</button>
-          <button class="btn accent" id="btnPlay">Поиграть</button>
-          <button class="btn brand" id="btnWash">Помыть</button>
-          <button class="btn warn" id="btnSleep">Спать</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="section row">
-      <span class="pill">Меню</span>
-      <div class="right flex">
-        <button class="btn" id="btnInventory">Инвентарь</button>
-        <button class="btn" id="btnShop">Магазин</button>
-      </div>
-    </div>
-
-    <div class="grid">
-      <button class="btn" id="btnQuests">Квесты</button>
-      <button class="btn" id="btnMini">Мини-игра</button>
-      <button class="btn" id="btnLeaderboard">Лидерборд</button>
-      <button class="btn" id="btnSettings">Настройки</button>
-    </div>
-
-    <div class="mini" style="margin-top:10px">💡 Характеристики со временем снижаются. Поддерживай их предметами и действиями, выполняй квесты, играй в мини-игру и копи семечки!</div>
-  </div>
-
-  <!-- SHOP -->
-  <div class="modal" id="modalShop">
-    <div class="sheet">
-      <div class="topbar">
-        <h2>Магазин</h2>
-        <div class="coins"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><circle cx='8' cy='8' r='7' fill='%23ffd866'/></svg>"> <i id="coinsShop">0</i></div>
-      </div>
-      <div class="sep"></div>
-
-      <div class="tag">Обычные предметы</div>
-      <div class="shop-list" id="shopRegular"></div>
-
-      <div class="sep"></div>
-      <div class="tag">Премиум аксессуары (косметика)</div>
-      <div class="shop-list" id="shopPremium"></div>
-
-      <div class="sep"></div>
-      <button class="btn right" id="closeShop">Закрыть</button>
+    <div class="row">
+      <button class="btn" id="btnSettings">⚙️</button>
+      <button class="btn" id="btnShop">🛒</button>
     </div>
   </div>
 
-  <!-- INVENTORY -->
-  <div class="modal" id="modalInv">
-    <div class="sheet">
-      <div class="topbar">
-        <h2>Инвентарь</h2>
-        <div class="hint">Тап по аксессуару — надеть/снять</div>
+  <!-- Комната / Питомец -->
+  <div id="room" class="card room">
+    <div class="pet-box" style="position:relative">
+      <img id="pet" class="pet pet-stage-1" src="./pet.webp" alt="Питомец">
+      <div id="fx" class="fx" style="inset:0;"></div>
+      <div class="chips" id="reactionBar" style="margin-top:8px">
+        <span class="chip" data-emo="❤️">❤️</span>
+        <span class="chip" data-emo="😂">😂</span>
+        <span class="chip" data-emo="👏">👏</span>
+        <span class="chip" data-emo="✨">✨</span>
       </div>
-      <div class="sep"></div>
-      <div class="tag">Расходники</div>
-      <div class="inv-list" id="invConsumables"></div>
-      <div class="sep"></div>
-      <div class="tag">Аксессуары</div>
-      <div class="inv-list" id="invAccessories"></div>
-      <div class="sep"></div>
-      <button class="btn right" id="closeInv">Закрыть</button>
     </div>
+    <div class="bars">
+      <div class="bar"><i id="bH"></i></div>
+      <div class="bar"><i id="bE"></i></div>
+      <div class="bar"><i id="bC"></i></div>
+    </div>
+    <div class="progress small">
+      <span>Счастье</span><span id="statsText"></span>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <button class="btn ok" id="btnFeed">🍎 Кормить</button>
+      <button class="btn ok" id="btnSleep">😴 Спать</button>
+      <button class="btn primary" id="btnPlay">🎲 Мини-игра</button>
+      <button class="btn warn" id="btnQuest">📋 Квесты</button>
+    </div>
+    <div class="kv"><span>Монеты (Seeds)</span><b id="coins">0</b></div>
+    <div class="kv"><span>Уровень</span><b id="level">1</b></div>
+    <div class="row" style="margin-top:8px">
+      <button class="btn" id="btnChest">🎁 Сундук</button>
+      <button class="btn" id="btnAch">🏆 Достижения</button>
+      <button class="btn" id="btnLB">📊 Лидерборд</button>
+    </div>
+    <div class="small" id="weeklyNote" style="margin-top:6px;color:#ffd876"></div>
   </div>
 
-  <!-- QUESTS -->
-  <div class="modal" id="modalQuests">
-    <div class="sheet">
-      <div class="topbar">
-        <h2>Квесты дня</h2>
-        <span class="hint">Сбрасываются каждое утро</span>
-      </div>
-      <div class="sep"></div>
-      <div class="quest-list" id="questList"></div>
-      <div class="sep"></div>
-      <button class="btn right" id="closeQuests">Закрыть</button>
+  <!-- Магазин -->
+  <div class="card" style="margin-top:10px">
+    <div class="section-title">Магазин</div>
+    <div class="chips" id="shopTabs">
+      <span class="chip active" data-tab="items">Предметы</span>
+      <span class="chip" data-tab="interiors">Интерьеры</span>
+      <span class="chip" data-tab="premium">Премиум</span>
     </div>
+    <div id="shopList" class="list" style="margin-top:8px"></div>
   </div>
 
-  <!-- MINI GAME -->
-  <div class="modal" id="modalMini">
-    <div class="sheet">
-      <div class="topbar">
-        <h2>Мини-игра: Tap-Love</h2>
-        <span class="hint">Нажимай на питомца и набери как можно больше “сердец” за 10 секунд!</span>
-      </div>
-      <div class="sep"></div>
-      <div class="pet" id="miniPet" style="width:220px;height:220px;margin:0 auto">
-        <img class="base" src="pet.webp" alt="">
-        <div class="acc" id="miniAcc"></div>
-      </div>
-      <div class="row" style="justify-content:center;margin:10px 0">
-        <div class="pill">⏱ <span id="miniTime">10</span>s</div>
-        <div class="pill">❤️ <span id="miniScore">0</span></div>
-      </div>
-      <div class="sep"></div>
-      <div class="row" style="justify-content:center;gap:8px">
-        <button class="btn" id="startMini">Старт</button>
-        <button class="btn" id="closeMini">Закрыть</button>
+  <!-- Настройки -->
+  <div class="card" style="margin-top:10px">
+    <div class="section-title">Настройки</div>
+    <div class="row-wrap">
+      <button class="btn" id="btnSnapshot">📤 Экспорт питомца</button>
+      <button class="btn" id="btnVisit">👀 Визит к другу</button>
+      <button class="btn" id="btnSave">💾 Сохранить</button>
+      <button class="btn" id="btnReset">🗑 Сброс</button>
+    </div>
+    <div id="devPanel" class="hidden" style="margin-top:10px">
+      <hr>
+      <div class="section-title">Админ-панель</div>
+      <div class="row-wrap">
+        <button class="btn" id="devCoins">+1000 Seeds</button>
+        <button class="btn" id="devAcc">Все аксессуары</button>
+        <button class="btn" id="devMax">MAX статы</button>
       </div>
     </div>
   </div>
 
-  <!-- LEADERBOARD -->
-  <div class="modal" id="modalLB">
-    <div class="sheet">
-      <div class="topbar">
-        <h2>Лидерборд</h2>
-        <span class="hint">Соревнуйтесь по уровню и общему опыту</span>
-      </div>
-      <div class="sep"></div>
-      <div class="tag">Локальный (на устройстве)</div>
-      <div class="lb-list" id="lbLocal"></div>
-      <div class="sep"></div>
-      <div class="tag">Глобальный (опционально)</div>
-      <div class="lb-list" id="lbGlobal"></div>
-      <div class="sep"></div>
-      <div class="row">
-        <button class="btn" id="syncLocal">Обновить локальный</button>
-        <button class="btn" id="pushGlobal">Отправить в глобальный</button>
-        <button class="btn right" id="closeLB">Закрыть</button>
-      </div>
-      <div class="mini">🛰 Если позже укажешь BACKEND_URL, глобальная таблица начнёт работать автоматически.</div>
-    </div>
+</div>
+
+<!-- Модалки -->
+<div id="modalShop" class="modal"><div class="sheet">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <b>Магазин</b><button class="btn" data-close>✖</button>
+  </div><div id="mShop" class="list" style="margin-top:8px"></div>
+</div></div>
+
+<div id="modalLB" class="modal"><div class="sheet">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <b>Лидерборд</b><button class="btn" data-close>✖</button>
   </div>
-
-  <!-- SETTINGS -->
-  <div class="modal" id="modalSettings">
-    <div class="sheet">
-      <div class="topbar"><h2>Настройки</h2></div>
-      <div class="sep"></div>
-      <div class="item">
-        <div class="meta">
-          <div>
-            <div class="muted">Сбросить прогресс</div>
-            <div class="mini">Удаляет локальные сохранения</div>
-          </div>
-        </div>
-        <button class="btn danger" id="wipeSave">Сброс</button>
-      </div>
-
-      <div id="devPanel" class="hidden">
-        <div class="sep"></div>
-        <div class="tag">Панель создателя</div>
-        <div class="item">
-          <div class="meta"><b>+1000 Seeds</b></div>
-          <button class="btn ok" id="devCoins">Выдать</button>
-        </div>
-        <div class="item">
-          <div class="meta"><b>Выдать все аксессуары</b></div>
-          <button class="btn ok" id="devAcc">Выдать</button>
-        </div>
-      </div>
-
-      <div class="sep"></div>
-      <button class="btn right" id="closeSettings">Закрыть</button>
-    </div>
+  <div class="small" id="lbInfo" style="margin:8px 0"></div>
+  <div class="row" style="gap:8px;margin:8px 0">
+    <button class="btn" id="syncLocal">🔄 Обновить локальный</button>
+    <button class="btn" id="pushGlobal">☁️ Отправить в глобальный</button>
+    <button class="btn" id="pullGlobal">⬇️ Топ глобальный</button>
   </div>
+  <div class="section-title">Локальный</div>
+  <div id="lbLocal" class="list"></div>
+  <hr>
+  <div class="section-title">Глобальный</div>
+  <div id="lbGlobal" class="list small"></div>
+</div></div>
 
-  <script>
-    // ========= CONFIG =========
-    const OWNER_ID = 1907547038; // твой Telegram user id (из RawDataBot)
-    const BACKEND_URL = ""; // если подключишь бэкенд (Render) — сюда его базовый URL, иначе оставь пустым
+<div id="modalQuests" class="modal"><div class="sheet">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <b>Ежедневные квесты</b><button class="btn" data-close>✖</button>
+  </div>
+  <div class="small">Сброс через: <span id="questLeft" class="timer">--:--:--</span></div>
+  <div id="questList" class="list" style="margin-top:8px"></div>
+</div></div>
 
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.expand();
-      tg.setHeaderColor("#101820");
-      tg.setBackgroundColor("#0f1620");
-    }
+<div id="modalAch" class="modal"><div class="sheet">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <b>Достижения</b><button class="btn" data-close>✖</button>
+  </div>
+  <div id="achList" class="list" style="margin-top:8px"></div>
+</div></div>
 
-    // ========= STATE =========
-    const now = () => Date.now();
-    const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+<div id="modalRun" class="modal"><div class="sheet" id="gameRun">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <b>🏃 Бег Хомяка</b><button class="btn" data-close>✖</button>
+  </div>
+  <div class="small">Тапай как можно чаще за 10 секунд!</div>
+  <div class="track"><i id="runBar"></i></div>
+  <div class="row" style="gap:8px">
+    <button class="btn primary full" id="runStart">Старт</button>
+    <span class="timer" id="runTime">10.0</span>
+  </div>
+  <div class="kv"><span>Очков</span><b id="runScore">0</b></div>
+</div></div>
 
-    const defaultState = (uid, name) => ({
-      user:{ id: uid, name: name || "Гость" },
-      coins: 120,
-      lvl: 1,
-      exp: 0,
-      expNext: 100,
-      stats: {
-        health: 85, hunger: 70, mood: 70, hygiene: 70, energy: 80
-      },
-      lastTick: now(),
-      inventory:{
-        consumables:{
-          food: 2, soap: 1, toy: 0, pillow: 1
-        },
-        accessories:{ bow:false, shades:false, crown:false },
-        equipped:{ bow:false, shades:false, crown:false }
-      },
-      quests: genDailyQuests(),
-      bestMini: 0,
-      leaderboardLocal: [], // [{name, lvl, exp, date}]
-    });
+<div id="modalVisit" class="modal"><div class="sheet">
+  <div class="row" style="justify-content:space-between;align-items:center">
+    <b>Визит к другу</b><button class="btn" data-close>✖</button>
+  </div>
+  <div class="small">Друг присылает свой «снапшот-код» (текст). Вставь ниже, чтобы посмотреть его питомца.</div>
+  <textarea id="visitCode" rows="5" style="width:100%;margin-top:8px"></textarea>
+  <div class="row" style="margin-top:8px">
+    <button class="btn primary" id="visitPreview">Открыть</button>
+    <button class="btn" id="visitGiveHeart">❤️ Подарить сердечко</button>
+  </div>
+  <div id="visitState" class="small" style="margin-top:8px;color:#ffd876"></div>
+</div></div>
 
-    function genDailyQuests(){
-      return [
-        { id:"feed3", title:"Покормить хомяка 3 раза", progress:0, goal:3, reward:40, exp:20, done:false },
-        { id:"play2", title:"Поиграть 2 раза", progress:0, goal:2, reward:30, exp:15, done:false },
-        { id:"mini1", title:"Сыграть в мини-игру 1 раз", progress:0, goal:1, reward:35, exp:20, done:false },
-        { id:"clean1", title:"Помыть 1 раз", progress:0, goal:1, reward:25, exp:10, done:false },
-      ];
-    }
+<script>
+/* ========== КОНСТАНТЫ ========== */
+const OWNER_ID = 1907547038;       // только у владельца — админ-панель
+const BACKEND_URL = "";            // укажешь позже — включится глобальный рейтинг
+const CHEST_COOLDOWN_MS = 4*60*60*1000;  // 4 часа
+const WEEKLY_DAYS_GOAL = 3;        // сколько дней счастье ≥90 для награды
 
-    // ========= LOAD/SAVE =========
-    function storageKey(uid){ return `tamagocho:${uid||"guest"}`; }
+/* ========== УТИЛС ========== */
+const $=sel=>document.querySelector(sel);
+const $$=sel=>document.querySelectorAll(sel);
+const now=()=>Date.now();
+const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
+const fmt=(n)=>new Intl.NumberFormat('ru-RU').format(n);
+const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d;}catch{ return d; }};
 
-    function loadState(){
-      const unsafe = tg?.initDataUnsafe;
-      const uid = unsafe?.user?.id || "guest";
-      const name = unsafe?.user?.first_name || "Игрок";
-      const key = storageKey(uid);
-      const raw = localStorage.getItem(key);
-      let s = raw ? JSON.parse(raw) : defaultState(uid, name);
-      // ежедневный сброс квестов
-      const last = localStorage.getItem(key+":qday");
-      const today = new Date().toDateString();
-      if (last !== today){
-        s.quests = genDailyQuests();
-        localStorage.setItem(key+":qday", today);
-      }
-      return s;
-    }
+/* ========== СОСТОЯНИЕ ========== */
+let state = load('tg_state',{
+  user:{id:1907547038,first_name:'Игрок'},
+  stats:{happy:70,energy:70,clean:70},
+  level:1, xp:0,
+  coins:50,
+  inventory:{apple:3,goldenApple:0,accessories:{bow:false,shades:false,crown:false}},
+  shop:{interior:'default'},
+  evol:1,
+  quests:{items:[],resetAt:0,progress:{}},
+  ach:{}, // id:true
+  chestAt:0,
+  weekly:{weekKey:'', daysHappy:0, rewarded:false},
+  leaderboardLocal:[],
+});
+const ROOMS={
+  default:{name:'Обычная комната',price:0, bg:'linear-gradient(180deg,#101826,#0b1320)'},
+  wood:{name:'Деревянная',price:120,bg:'url(https://images.unsplash.com/photo-1501045661006-fcebe0257c3f?auto=format&fit=crop&w=900&q=60)'},
+  night:{name:'Ночная',price:150,bg:'url(https://images.unsplash.com/photo-1542654071-08c7162cfb19?auto=format&fit=crop&w=900&q=60)'},
+  neon:{name:'Неон',price:220,bg:'url(https://images.unsplash.com/photo-1517816743773-6e0fd518b4a6?auto=format&fit=crop&w=900&q=60)'}
+};
+const ITEMS=[
+  {id:'apple',name:'Яблоко',desc:'+15 Еда/Энергия/Чистота по чуть-чуть',price:10},
+  {id:'cleaner',name:'Мыло',desc:'Чистота +30',price:24},
+  {id:'toy',name:'Игрушка',desc:'Счастье +25',price:35},
+  {id:'gold',name:'Золотое яблоко',desc:'Полное восстановление',craft:true}
+];
+const PREMIUM=[
+  {id:'bow',name:'Бантик',price:0, premium:true},
+  {id:'shades',name:'Очки',price:0, premium:true},
+  {id:'crown',name:'Корона',price:0, premium:true},
+];
+const ACHS=[
+  {id:'feed10',name:'Молодец-кормилец',cond:s=>s._feed>=10, reward:20},
+  {id:'first100',name:'Соточка счастья',cond:s=>s.stats.happy>=100, reward:10},
+  {id:'rich',name:'Копилка',cond:s=>s.coins>=500, reward:50},
+  {id:'runner',name:'Быстрые лапки',cond:s=>s._runScore>=150, reward:25},
+];
+const DAILY_POOL=[
+  {id:'q_feed3', text:'Покорми питомца 3 раза', type:'feed',need:3, reward:20},
+  {id:'q_game1', text:'Сыграй в мини-игру 1 раз', type:'run',need:1, reward:15},
+  {id:'q_clean1',text:'Повышай чистоту 1 раз', type:'clean',need:1, reward:10},
+  {id:'q_sleep1',text:'Уложи спать 1 раз', type:'sleep',need:1, reward:10},
+  {id:'q_emo5', text:'Отправь 5 эмоций', type:'emo',need:5, reward:10},
+];
 
-    function saveState(){
-      localStorage.setItem(storageKey(state.user.id), JSON.stringify(state));
-      renderAll();
-    }
+let session = {_feed:0,_runScore:0, _emo:0};
 
-    // ========= GAME TICK =========
-    function tick(){
-      const dt = (now() - state.lastTick)/1000; // sec
-      if (dt > 2){ // вне фокуса/возврат — нормализуем
-        const decay = Math.min(dt/60, 20); // не обнулять слишком быстро
-        // базовый спад
-        state.stats.hunger = clamp(state.stats.hunger - 0.05*decay, 0, 100);
-        state.stats.mood   = clamp(state.stats.mood   - 0.04*decay, 0, 100);
-        state.stats.hygiene= clamp(state.stats.hygiene- 0.03*decay, 0, 100);
-        state.stats.energy = clamp(state.stats.energy - 0.03*decay, 0, 100);
-        // здоровье падает если другие просели
-        const avg = (state.stats.hunger+state.stats.mood+state.stats.hygiene+state.stats.energy)/4;
-        if (avg < 40) state.stats.health = clamp(state.stats.health - 0.08*decay, 0, 100);
-        else state.stats.health = clamp(state.stats.health + 0.02*decay, 0, 100);
-      }
-      state.lastTick = now();
-      saveState();
-    }
-    setInterval(tick, 6000);
+/* ========== ИНИТ ========== */
+function init(){
+  // avatar/hello
+  $('#hello').textContent = `Привет, ${state.user.first_name || 'друг'}!`;
+  if(state.user.id===OWNER_ID) $('#isAdmin').classList.remove('hidden');
+  // room bg
+  applyInterior();
+  // отрисовка
+  render();
+  // ежедневные квесты
+  bootstrapDaily();
+  // недельное событие
+  updateWeeklyNote();
+}
+document.addEventListener('DOMContentLoaded',init);
 
-    // ========= ACTIONS =========
-    function addExp(v){
-      state.exp += v;
-      while (state.exp >= state.expNext){
-        state.exp -= state.expNext;
-        state.lvl++;
-        state.expNext = Math.round(state.expNext*1.25);
-        toast(`🎉 Уровень ${state.lvl}!`);
-      }
-    }
+/* ========== РЕНДЕР ========= */
+function render(){
+  // полоски
+  $('#bH').style.width = clamp(state.stats.happy,0,100)+'%';
+  $('#bE').style.width = clamp(state.stats.energy,0,100)+'%';
+  $('#bC').style.width = clamp(state.stats.clean,0,100)+'%';
+  $('#statsText').textContent = `😊 ${state.stats.happy} • ⚡ ${state.stats.energy} • 🧼 ${state.stats.clean}`;
+  $('#coins').textContent = fmt(state.coins);
+  $('#level').textContent = state.level;
 
-    function spendCoins(n){ if (state.coins>=n){ state.coins-=n; return true } return false; }
-    function giveCoins(n){ state.coins += n; }
+  // эволюция
+  const stage = calcEvolution();
+  const pet = $('#pet');
+  pet.classList.remove('pet-stage-1','pet-stage-2','pet-stage-3');
+  pet.classList.add(`pet-stage-${stage}`);
+}
 
-    function useConsumable(key){
-      const have = state.inventory.consumables[key]||0;
-      if (!have) return toast("Нет в инвентаре");
-      state.inventory.consumables[key]--;
-      if (key==="food")     { state.stats.hunger = 100; addExp(5); }
-      if (key==="soap")     { state.stats.hygiene= 100; addExp(5); }
-      if (key==="toy")      { state.stats.mood   = clamp(state.stats.mood+50,0,100); addExp(6);}
-      if (key==="pillow")   { state.stats.energy = 100; addExp(6); }
-      saveState();
-    }
+/* ========== ЭВОЛЮЦИЯ ========= */
+function calcEvolution(){
+  const score = state.level*50 + (state.stats.happy+state.stats.energy+state.stats.clean);
+  let ev = 1;
+  if(score>=260) ev=3;
+  else if(score>=200) ev=2;
+  state.evol = ev;
+  return ev;
+}
 
-    function toggleAccessory(key){
-      const have = !!state.inventory.accessories[key];
-      if (!have) return toast("Сначала купи аксессуар в магазине");
-      const cur = !!state.inventory.equipped[key];
-      state.inventory.equipped[key] = !cur;
-      saveState();
-    }
+/* ========== ИНТЕРЬЕР ========= */
+function applyInterior(){
+  const key = state.shop.interior || 'default';
+  const room = ROOMS[key] || ROOMS.default;
+  $('#room').style.background = room.bg;
+}
 
-    // кнопки действий (без расходников)
-    document.addEventListener("click", (e)=>{
-      if (e.target.id==="btnFeed"){
-        state.stats.hunger = clamp(state.stats.hunger+25,0,100);
-        incQuest("feed3",1);
-        addExp(3);
-        toast("🍽 Питомец доволен!");
-        saveState();
-      }
-      if (e.target.id==="btnPlay"){
-        state.stats.mood = clamp(state.stats.mood+18,0,100);
-        incQuest("play2",1);
-        addExp(3);
-        saveState();
-      }
-      if (e.target.id==="btnWash"){
-        state.stats.hygiene = clamp(state.stats.hygiene+18,0,100);
-        incQuest("clean1",1);
-        addExp(3);
-        saveState();
-      }
-      if (e.target.id==="btnSleep"){
-        state.stats.energy = clamp(state.stats.energy+25,0,100);
-        addExp(3);
-        saveState();
-      }
-    });
+/* ========== СОХР/ЗАГР ========= */
+function persist(){ save('tg_state',state); }
+$('#btnSave').onclick=persist;
+$('#btnReset').onclick=()=>{ if(confirm('Сбросить прогресс?')){ localStorage.removeItem('tg_state'); location.reload(); }};
 
-    // ========= QUESTS =========
-    function incQuest(id, v){
-      const q = state.quests.find(x=>x.id===id);
-      if (!q || q.done) return;
-      q.progress = clamp(q.progress + (v||1), 0, q.goal);
-      if (q.progress >= q.goal){
-        q.done = true;
-        giveCoins(q.reward);
-        addExp(q.exp);
-        toast(`✅ Квест “${q.title}” выполнен! +${q.reward} Seeds, +${q.exp} EXP`);
-      }
-      saveState();
-    }
+/* ========== ДЕЙСТВИЯ ========= */
+$('#btnFeed').onclick=()=>{
+  if(state.inventory.apple<=0 && state.inventory.goldenApple<=0){ toast('Нужно яблоко! Купи в магазине'); return;}
+  if(state.inventory.goldenApple>0){
+    state.inventory.goldenApple--; state.stats.happy=state.stats.energy=state.stats.clean=100;
+    toast('Золотое яблоко! Все статы полные ✨'); grantAch('first100');
+  } else {
+    state.inventory.apple--; state.stats.happy=clamp(state.stats.happy+8,0,100);
+    state.stats.energy=clamp(state.stats.energy+8,0,100);
+    state.stats.clean =clamp(state.stats.clean +5,0,100);
+  }
+  session._feed++; bumpQuest('feed',1); grantAchMaybe();
+  fxEmoji('🍎'); render(); persist();
+};
+$('#btnSleep').onclick=()=>{
+  state.stats.energy=clamp(state.stats.energy+28,0,100);
+  state.stats.clean =clamp(state.stats.clean -6 ,0,100);
+  bumpQuest('sleep',1); fxEmoji('😴'); render(); persist();
+};
+$('#btnPlay').onclick=()=>openModal('#modalRun');
+$('#btnQuest').onclick=()=>openModal('#modalQuests');
+$('#btnAch').onclick =()=>openModal('#modalAch');
+$('#btnShop').onclick =()=>{ buildShop(); openModal('#modalShop'); };
+$('#btnSettings').onclick =()=>toast('Открыты настройки ниже ⤵️');
 
-    // ========= MINI GAME =========
-    let miniTimer=null, miniLeft=10, miniScore=0;
-    function startMini(){
-      miniLeft = 10; miniScore = 0;
-      $("#miniTime").textContent = miniLeft;
-      $("#miniScore").textContent = miniScore;
-      clearInterval(miniTimer);
-      miniTimer = setInterval(()=>{
-        miniLeft--; $("#miniTime").textContent = miniLeft;
-        if (miniLeft<=0){
-          clearInterval(miniTimer);
-          const prize = 10 + Math.floor(miniScore/3);
-          giveCoins(prize);
-          addExp(10);
-          incQuest("mini1",1);
-          if (miniScore>state.bestMini) state.bestMini = miniScore;
-          saveState();
-          toast(`🏁 Результат: ${miniScore}. Награда +${prize} Seeds`);
-        }
-      }, 1000);
-    }
+/* Эмоции */
+$('#reactionBar').addEventListener('click',(e)=>{
+  const emo = e.target.dataset.emo; if(!emo) return;
+  fxEmoji(emo); session._emo++; bumpQuest('emo',1);
+});
 
-    // ========= LEADERBOARD =========
-    async function refreshLocalLB(){
-      // храним топ-10 локально
-      const entry = { name: state.user.name, lvl: state.lvl, exp: state.exp, date: new Date().toISOString() };
-      let arr = state.leaderboardLocal||[];
-      arr.unshift(entry);
-      arr = arr.slice(0,10);
-      state.leaderboardLocal = arr;
-      saveState();
-    }
+/* Сундук */
+$('#btnChest').onclick=()=>{
+  const nowTs = now();
+  if(state.chestAt && nowTs < state.chestAt){ const left = Math.ceil((state.chestAt-nowTs)/60000); toast(`Сундук будет через ~${left} мин`); return; }
+  // награда
+  const roll = Math.random();
+  if(roll<.5){ const c= 15+Math.floor(Math.random()*21); state.coins+=c; toast(`+${c} Seeds из сундука 💰`); }
+  else if(roll<.8){ state.inventory.apple+=1; toast(`+1 яблоко 🍎`); }
+  else { state.inventory.goldenApple+=1; toast(`Золотое яблоко ✨`); }
+  state.chestAt = now()+CHEST_COOLDOWN_MS; grantAchMaybe(); persist(); render();
+};
 
-    async function pushGlobal(){
-      if (!BACKEND_URL){ toast("Глобальный сервер не подключен"); return; }
-      try{
-        await fetch(`${BACKEND_URL}/api/leaderboard/push`, {
-          method:"POST", headers:{ "Content-Type":"application/json" },
-          body: JSON.stringify({ id: state.user.id, name: state.user.name, lvl: state.lvl, exp: state.exp })
+/* ========== МАГАЗИН ========= */
+function buildShop(){
+  const tab = $('#shopTabs .chip.active')?.dataset.tab || 'items';
+  const box = $('#mShop'); box.innerHTML='';
+  const addItem=(title,desc,price,action,disabled=false,tag='')=>{
+    const el=document.createElement('div'); el.className='item';
+    el.innerHTML=`
+      <div><div>
+        <div><b>${title}</b> ${tag?`<span class="tag">${tag}</span>`:''}</div>
+        <div class="small">${desc}</div>
+      </div></div>
+      <div>
+        <span class="price">💰 ${price}</span>
+        <button class="btn ${disabled?'hidden':''}">Купить</button>
+      </div>`;
+    el.querySelector('button')?.addEventListener('click',action);
+    box.appendChild(el);
+  };
+
+  if(tab==='items'){
+    ITEMS.forEach(it=>{
+      if(it.craft){ // показать крафт
+        const can = state.inventory.apple>=3;
+        addItem('Золотое яблоко (крафт)','3 яблока → 1 золотое', '—', ()=>{
+          if(state.inventory.apple<3) return toast('Нужно 3 яблока');
+          state.inventory.apple-=3; state.inventory.goldenApple+=1; toast('Скрафтил ✨ Золотое яблоко');
+          persist(); render();
+        }, !can, 'CRAFT');
+      } else {
+        addItem(it.name,it.desc,it.price,()=>{
+          if(state.coins<it.price) return toast('Не хватает монет');
+          state.coins-=it.price; state.inventory[it.id]=(state.inventory[it.id]||0)+1;
+          toast(`Куплено: ${it.name}`); persist(); render();
         });
-        toast("🌍 Отправлено в глобальный рейтинг");
-      }catch(e){ toast("Не удалось отправить в глобальный рейтинг"); }
-    }
-    async function getGlobal(){
-      $("#lbGlobal").innerHTML = `<div class="mini">Загрузка...</div>`;
-      if (!BACKEND_URL){ $("#lbGlobal").innerHTML = `<div class="mini">Сервер не подключен</div>`; return; }
-      try{
-        const r = await fetch(`${BACKEND_URL}/api/leaderboard/top`);
-        const data = await r.json();
-        $("#lbGlobal").innerHTML = data.map((x,i)=>lbRow(i+1, x.name, x.lvl, x.exp)).join("");
-      }catch(e){
-        $("#lbGlobal").innerHTML = `<div class="mini">Ошибка загрузки</div>`;
-      }
-    }
-
-    // ========= SHOP =========
-    const REGULAR = [
-      {key:"food",  title:"Корм",    price:25,  desc:"Полностью восстанавливает сытость", onUse:()=>useConsumable("food")},
-      {key:"soap",  title:"Мыло",    price:25,  desc:"Полностью восстанавливает гигиену", onUse:()=>useConsumable("soap")},
-      {key:"toy",   title:"Игрушка", price:35,  desc:"Сильно повышает настроение",        onUse:()=>useConsumable("toy")},
-      {key:"pillow",title:"Подушка", price:30,  desc:"Полностью восстанавливает энергию", onUse:()=>useConsumable("pillow")},
-    ];
-    const PREMIUM = [
-      {key:"bow",    title:"Бантик 🎀",      price:120, premium:true},
-      {key:"shades", title:"Очки 😎",        price:150, premium:true},
-      {key:"crown",  title:"Корона 👑",      price:220, premium:true},
-    ];
-
-    function buyItem(item){
-      if (!spendCoins(item.price)) return toast("Недостаточно Seeds");
-      if (item.premium){
-        state.inventory.accessories[item.key] = true;
-        toast(`Куплено: ${item.title}`);
-      }else{
-        state.inventory.consumables[item.key] = (state.inventory.consumables[item.key]||0)+1;
-        toast(`Куплено: ${item.title}`);
-      }
-      addExp(4);
-      saveState();
-    }
-
-    // ========= RENDER =========
-    function $(sel){ return document.querySelector(sel); }
-    function bar(name,val,color){
-      return `
-        <div>
-          <div class="stat-line"><span class="muted">${name}</span><span>${Math.round(val)}%</span></div>
-          <div class="bar"><i style="width:${val}%;background:${color}"></i></div>
-        </div>`;
-    }
-    function renderBars(){
-      const s = state.stats;
-      $("#bars").innerHTML = 
-        bar("Здоровье", s.health, "linear-gradient(90deg,#34d399,#22c55e)")+
-        bar("Сытость",  s.hunger, "linear-gradient(90deg,#f59e0b,#fde047)")+
-        bar("Настроение", s.mood, "linear-gradient(90deg,#60a5fa,#22d3ee)")+
-        bar("Гигиена", s.hygiene, "linear-gradient(90deg,#a78bfa,#8b5cf6)")+
-        bar("Энергия", s.energy, "linear-gradient(90deg,#fb7185,#fda4af)");
-    }
-    function renderHeader(){
-      $("#coins").textContent = state.coins;
-      $("#coinsShop").textContent = state.coins;
-      $("#levelText").textContent = `LVL ${state.lvl} • EXP ${state.exp}/${state.expNext}`;
-      const uname = state.user.name || "Игрок";
-      $("#username").textContent = `Привет, ${uname}!`;
-      $("#greet").textContent = "TAMAGOCHO";
-      // аксессуары
-      const wear = [];
-      if (state.inventory.equipped.bow) wear.push("🎀");
-      if (state.inventory.equipped.shades) wear.push("🕶️");
-      if (state.inventory.equipped.crown) wear.push("👑");
-      $("#accLayer").textContent = wear.join(" ");
-      $("#miniAcc").textContent = wear.join(" ");
-      if (state.user.id==OWNER_ID) $("#devPanel").classList.remove("hidden");
-    }
-    function renderShop(){
-      $("#shopRegular").innerHTML = REGULAR.map(it=>`
-        <div class="item">
-          <div class="meta">
-            <div>
-              <b>${it.title}</b>
-              <div class="mini">${it.desc||""}</div>
-            </div>
-          </div>
-          <div class="flex">
-            <div class="price">💰 ${it.price}</div>
-            <button class="btn ok" data-buy="${it.key}">Купить</button>
-          </div>
-        </div>
-      `).join("");
-      $("#shopPremium").innerHTML = PREMIUM.map(it=>`
-        <div class="item">
-          <div class="meta">
-            <div><b>${it.title}</b><div class="mini">Косметический аксессуар</div></div>
-          </div>
-          <div class="flex">
-            <div class="price">💎 ${it.price}</div>
-            <button class="btn ok" data-buy="${it.key}" data-premium="1">Купить</button>
-          </div>
-        </div>
-      `).join("");
-    }
-    function renderInventory(){
-      const c = state.inventory.consumables;
-      $("#invConsumables").innerHTML = REGULAR.map(it=>{
-        const n = c[it.key]||0;
-        return `
-          <div class="item">
-            <div class="meta"><b>${it.title}</b><span class="tag">x${n}</span></div>
-            <button class="btn" data-use="${it.key}" ${n? "":"disabled"}>Использовать</button>
-          </div>`;
-      }).join("");
-      const a = state.inventory.accessories, e = state.inventory.equipped;
-      $("#invAccessories").innerHTML = PREMIUM.map(it=>{
-        const have = !!a[it.key];
-        const on = !!e[it.key];
-        return `
-          <div class="item">
-            <div class="meta"><b>${it.title}</b> ${have? (on? '<span class="tag">надето</span>':'<span class="tag">есть</span>'):'<span class="tag">нет</span>'}</div>
-            <button class="btn" data-toggle="${it.key}" ${have? "":"disabled"}>${on?"Снять":"Надеть"}</button>
-          </div>`;
-      }).join("");
-    }
-    function renderQuests(){
-      $("#questList").innerHTML = state.quests.map(q=>{
-        const pct = Math.floor(100*q.progress/q.goal);
-        return `
-          <div class="item">
-            <div class="meta" style="flex:1">
-              <div>
-                <b>${q.title}</b>
-                <div class="mini">Прогресс: ${q.progress}/${q.goal} • Награда: +${q.reward} Seeds, +${q.exp} EXP</div>
-                <div class="bar"><i style="width:${pct}%;background:linear-gradient(90deg,#60a5fa,#22d3ee)"></i></div>
-              </div>
-            </div>
-            <div>${q.done?'<span class="success">Выполнено</span>':'<span class="hint">В процессе</span>'}</div>
-          </div>`;
-      }).join("");
-    }
-    function lbRow(pos,name,lvl,exp){
-      return `<div class="item"><div class="meta"><b>#${pos}</b> <span>${name}</span></div><div class="mini">LVL ${lvl} • EXP ${exp}</div></div>`;
-    }
-    function renderLB(){
-      const arr = state.leaderboardLocal||[];
-      $("#lbLocal").innerHTML = arr.map((x,i)=>lbRow(i+1,x.name,x.lvl,x.exp)).join("") || `<div class="mini">Пока пусто. Нажми “Обновить локальный”.</div>`;
-    }
-    function renderAll(){ renderHeader(); renderBars(); }
-
-    // ========= EVENTS (UI) =========
-    // open/close modals
-    const show = el => el.classList.add("show");
-    const hide = el => el.classList.remove("show");
-
-    $("#btnShop").onclick = ()=>{ renderShop(); show($("#modalShop")); };
-    $("#closeShop").onclick = ()=> hide($("#modalShop"));
-    $("#btnInventory").onclick = ()=>{ renderInventory(); show($("#modalInv")); };
-    $("#closeInv").onclick = ()=> hide($("#modalInv"));
-    $("#btnQuests").onclick = ()=>{ renderQuests(); show($("#modalQuests")); };
-    $("#closeQuests").onclick = ()=> hide($("#modalQuests"));
-    $("#btnMini").onclick = ()=> show($("#modalMini"));
-    $("#closeMini").onclick = ()=> hide($("#modalMini"));
-    $("#btnLeaderboard").onclick = ()=>{ renderLB(); getGlobal(); show($("#modalLB")); };
-    $("#closeLB").onclick = ()=> hide($("#modalLB"));
-    $("#btnSettings").onclick = ()=> show($("#modalSettings"));
-    $("#closeSettings").onclick = ()=> hide($("#modalSettings"));
-
-    // shop clicks
-    $("#modalShop").addEventListener("click",(e)=>{
-      const buyKey = e.target.dataset.buy;
-      if (!buyKey) return;
-      const premium = !!e.target.dataset.premium;
-      const list = premium? PREMIUM : REGULAR;
-      const it = list.find(x=>x.key===buyKey);
-      if (it) buyItem(it);
-    });
-    // inventory clicks
-    $("#modalInv").addEventListener("click",(e)=>{
-      const u = e.target.dataset.use; if (u){ useConsumable(u); renderInventory(); return; }
-      const t = e.target.dataset.toggle; if (t){ toggleAccessory(t); renderInventory(); }
-    });
-
-    // mini game
-    $("#startMini").onclick = ()=> startMini();
-    $("#miniPet").addEventListener("click", ()=>{
-      if (miniLeft>0){
-        miniScore++; $("#miniScore").textContent = miniScore;
       }
     });
-
-    // leaderboard buttons
-    $("#syncLocal").onclick = ()=>{ refreshLocalLB(); renderLB(); };
-    $("#pushGlobal").onclick = ()=> pushGlobal();
-
-    // settings
-    $("#wipeSave").onclick = ()=>{
-      if (!confirm("Точно удалить локальные данные?")) return;
-      localStorage.removeItem(storageKey(state.user.id));
-      location.reload();
-    };
-    $("#devCoins").onclick = ()=>{ giveCoins(1000); saveState(); };
-    $("#devAcc").onclick   = ()=>{ state.inventory.accessories={bow:true,shades:true,crown:true}; saveState(); };
-
-    // ========= TOAST =========
-    let toastTimer=null;
-    function toast(msg){
-      tg?.showPopup ? tg.showPopup({message:msg}) : (()=>{
-        clearTimeout(toastTimer);
-        let el = document.getElementById("toast");
-        if (!el){
-          el = document.createElement("div");
-          el.id = "toast";
-          el.style.cssText = "position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111c2a;color:#eaf6ff;padding:10px 14px;border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,.35);z-index:9999;font-size:14px";
-          document.body.appendChild(el);
+  }
+  if(tab==='interiors'){
+    Object.entries(ROOMS).forEach(([id,room])=>{
+      const owned = (id==='default') || state.shop[id];
+      addItem(room.name, owned?'Куплено':'Фон комнаты', room.price || 0, ()=>{
+        if(!owned){
+          if(state.coins<room.price) return toast('Не хватает монет');
+          state.coins-=room.price; state.shop[id]=true;
         }
-        el.textContent = msg;
-        el.style.opacity = "1";
-        toastTimer = setTimeout(()=>{ el.style.opacity="0"; }, 1600);
-      })();
-    }
-
-    // ========= INIT =========
-    let state = loadState();
-
-    // Приветствие
-    if (tg?.initDataUnsafe?.user?.first_name){
-      $("#username").textContent = `Привет, ${tg.initDataUnsafe.user.first_name}!`;
-    }
-
-    renderAll();
-
-    // Дополнительное: клик по питомцу даёт немного настроения
-    $("#petBox").addEventListener("click", ()=>{
-      state.stats.mood = clamp(state.stats.mood + 2, 0, 100);
-      saveState();
+        state.shop.interior=id; applyInterior(); persist(); render();
+      }, (id==='default' && state.shop.interior==='default'), owned?'OWNED':'');
     });
+  }
+  if(tab==='premium'){
+    PREMIUM.forEach(p=>{
+      const has = !!state.inventory.accessories[p.id];
+      addItem(p.name,'Аксессуар (косметика, без преимуществ)','—',()=>{
+        state.inventory.accessories[p.id]=true;
+        toast('Аксессуар выдан'); persist();
+      }, has,'FREE');
+    });
+  }
+}
+$('#shopTabs').addEventListener('click',(e)=>{
+  const t=e.target.closest('.chip'); if(!t) return;
+  $('#shopTabs .chip.active')?.classList.remove('active'); t.classList.add('active');
+  buildShop();
+});
 
-    // первичная запись в локальный лидерборд (если пусто)
-    if (!state.leaderboardLocal || !state.leaderboardLocal.length){
-      refreshLocalLB();
+/* ========== ЕЖЕДНЕВНЫЕ КВЕСТЫ ========== */
+function bootstrapDaily(){
+  if(!state.quests.resetAt || now()>state.quests.resetAt){
+    const items = pickRandom(DAILY_POOL,3);
+    state.quests.items = items;
+    state.quests.progress = Object.fromEntries(items.map(q=>[q.id,0]));
+    state.quests.resetAt = todayUTC()+24*60*60*1000; // завтра 00:00 UTC
+    persist();
+  }
+  renderQuests();
+  tickQuestTimer();
+}
+function renderQuests(){
+  const box = $('#questList'); box.innerHTML='';
+  state.quests.items.forEach(q=>{
+    const cur = state.quests.progress[q.id]||0;
+    const done = cur>=q.need;
+    const el=document.createElement('div'); el.className='item';
+    el.innerHTML=`<div><div><b>${q.text}</b></div><div class="small">Прогресс: ${cur}/${q.need}</div></div>
+      <div>${done?`<span class="badge">Награда: ${q.reward}</span>`:`<button class="btn ok">Забрать (${q.reward})</button>`}</div>`;
+    if(!done) el.querySelector('button')?.addEventListener('click',()=>{
+      if(state.quests.progress[q.id]<q.need) return toast('Задание ещё не выполнено');
+    });
+    if(done) el.querySelector('button')?.remove();
+    if(done && !el.querySelector('.badge')){/*noop*/}
+    if(done){ // выдача по клику на правую часть
+      el.querySelector('div:last-child').addEventListener('click',()=>{
+        if(state.quests.progress[q.id]===Infinity) return; // уже забрано
+        state.coins+=q.reward; state.quests.progress[q.id]=Infinity; toast(`+${q.reward} Seeds`);
+        render(); renderQuests(); persist();
+      });
     }
-  </script>
+    box.appendChild(el);
+  });
+}
+function bumpQuest(type,delta){
+  state.quests.items.forEach(q=>{
+    if(q.type===type && state.quests.progress[q.id]!==Infinity){
+      state.quests.progress[q.id] = clamp((state.quests.progress[q.id]||0)+delta,0,q.need);
+    }
+  });
+  renderQuests(); persist();
+}
+function tickQuestTimer(){
+  const left = Math.max(0, state.quests.resetAt-now());
+  $('#questLeft').textContent = fmtTime(left);
+  if(left<=0) bootstrapDaily();
+  setTimeout(tickQuestTimer,1000);
+}
+function todayUTC(){
+  const d=new Date(); return Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());
+}
+function fmtTime(ms){
+  const s=Math.floor(ms/1000); const h=Math.floor(s/3600); const m=Math.floor((s%3600)/60); const ss=s%60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+}
+function pickRandom(arr,n){
+  const a=[...arr]; const out=[]; while(out.length<n && a.length){ out.push(a.splice(Math.floor(Math.random()*a.length),1)[0]); }
+  return out;
+}
+
+/* ========== ДОСТИЖЕНИЯ ========== */
+function grantAch(id){ state.ach[id]=true; persist(); renderAch(); }
+function grantAchMaybe(){
+  ACHS.forEach(a=>{ try{ if(!state.ach[a.id] && a.cond({...state,...session})) { state.ach[a.id]=true; state.coins+=a.reward; toast(`🏆 Достижение: ${a.name} (+${a.reward})`); } }catch{} });
+  persist(); render(); renderAch();
+}
+$('#btnAch').onclick=()=>{ renderAch(); openModal('#modalAch'); };
+function renderAch(){
+  const box=$('#achList'); box.innerHTML='';
+  ACHS.forEach(a=>{
+    const done=!!state.ach[a.id];
+    const el=document.createElement('div'); el.className='item';
+    el.innerHTML=`<div><b>${a.name}</b><div class="small">Награда: ${a.reward}</div></div>
+      <div>${done?'<span class="badge">Получено</span>':'<span class="tag">В процессе</span>'}</div>`;
+    box.appendChild(el);
+  });
+}
+
+/* ========== МИНИ-ИГРА ========= */
+let runTimer=null, runLeft=10.0, runScore=0;
+$('#runStart').onclick=()=>{
+  if(runTimer){ return; }
+  runLeft=10.0; runScore=0; $('#runBar').style.width='0%'; $('#runScore').textContent=runScore; $('#runTime').textContent=runLeft.toFixed(1);
+  const tap=()=>{ if(!runTimer) return; runScore++; $('#runScore').textContent=runScore; $('#runBar').style.width=Math.min(100,runScore)+'%'; };
+  $('#gameRun').onclick=tap;
+  runTimer=setInterval(()=>{
+    runLeft=Math.max(0,runLeft-0.1); $('#runTime').textContent=runLeft.toFixed(1);
+    if(runLeft<=0){ clearInterval(runTimer); runTimer=null; $('#gameRun').onclick=null;
+      const reward = Math.min(60, 10+Math.floor(runScore/3));
+      state.coins+=reward; session._runScore=runScore; grantAchMaybe();
+      toast(`Финиш! +${reward} Seeds`);
+      bumpQuest('run',1); render(); persist();
+    }
+  },100);
+};
+
+/* ========== ЛИДЕРБОРДЫ ========== */
+$('#btnLB').onclick=()=>{ renderLB(); openModal('#modalLB'); };
+$('#syncLocal').onclick=()=>{ pushLocalScore(); renderLB(); };
+$('#pushGlobal').onclick=()=>{ if(!BACKEND_URL){ toast('Глобальный сервер не подключен'); return; } pushGlobal(); };
+$('#pullGlobal').onclick=()=>{ if(!BACKEND_URL){ toast('Глобальный сервер не подключен'); return; } getGlobal(); };
+
+function pushLocalScore(){
+  const score = Math.round(state.stats.happy*2 + state.coins*0.2 + state.level*5);
+  const item ={name:state.user.first_name||'Игрок', score, time:new Date().toISOString()};
+  state.leaderboardLocal.unshift(item); state.leaderboardLocal=state.leaderboardLocal.slice(0,20); persist();
+}
+function renderLB(){
+  $('#lbInfo').textContent = BACKEND_URL? 'Глобальный доступен':'Глобальный отключён (ожидает BACKEND_URL)';
+  const loc = $('#lbLocal'); loc.innerHTML='';
+  (state.leaderboardLocal||[]).forEach((r,i)=>{
+    const el=document.createElement('div'); el.className='item';
+    el.innerHTML=`<div><b>${i+1}. ${r.name}</b><div class="small">${new Date(r.time).toLocaleString()}</div></div><div><b>${r.score}</b></div>`;
+    loc.appendChild(el);
+  });
+}
+async function pushGlobal(){
+  try{
+    const score = Math.round(state.stats.happy*2 + state.coins*0.2 + state.level*5);
+    await fetch(BACKEND_URL+'/api/leaderboard/push',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:state.user.first_name, score})});
+    toast('Отправлено в глобальный топ');
+  }catch{ toast('Ошибка отправки'); }
+}
+async function getGlobal(){
+  try{
+    const data = await fetch(BACKEND_URL+'/api/leaderboard/top').then(r=>r.json());
+    const box=$('#lbGlobal'); box.innerHTML='';
+    data.forEach((r,i)=>{
+      const el=document.createElement('div'); el.className='item';
+      el.innerHTML=`<div><b>${i+1}. ${r.name}</b></div><div><b>${r.score}</b></div>`;
+      box.appendChild(el);
+    });
+  }catch{ toast('Не удалось получить топ'); }
+}
+
+/* ========== НЕДЕЛЬНОЕ СОБЫТИЕ ========= */
+function weekKey(){
+  const d=new Date(); const y=d.getUTCFullYear(); const w=Math.floor((Date.UTC(y,d.getUTCMonth(),d.getUTCDate())-Date.UTC(y,0,1))/(7*24*3600*1000));
+  return `${y}-W${w}`;
+}
+function updateWeeklyNote(){
+  const key=weekKey();
+  if(state.weekly.weekKey!==key){ // новая неделя
+    state.weekly={weekKey:key,daysHappy:0,rewarded:false};
+  }
+  const d=new Date(); const todayKey=d.toDateString();
+  // засчитываем день если счастье >=90 и ещё не считали сегодня
+  let mark=load('week_mark','');
+  if(state.stats.happy>=90 && mark!==todayKey){
+    state.weekly.daysHappy++; save('week_mark',todayKey); persist();
+  }
+  const leftDays = 7 - d.getUTCDay(); // просто подсказка
+  $('#weeklyNote').textContent = `Неделя счастья: ${state.weekly.daysHappy}/7 • осталось дней ~${leftDays}`;
+  if(!state.weekly.rewarded && state.weekly.daysHappy>=WEEKLY_DAYS_GOAL){
+    state.coins+=100; state.weekly.rewarded=true; toast('Награда недели: +100 Seeds!'); persist(); render();
+  }
+}
+
+/* ========== ВИЗИТ К ДРУГУ (снапшот) ========== */
+$('#btnSnapshot').onclick=()=>{
+  const data = {pet:state.stats, deco:state.shop, name:state.user.first_name, happy:state.stats.happy};
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+  copy(code); toast('Снапшот скопирован в буфер. Отправь другу!');
+};
+$('#btnVisit').onclick = ()=>openModal('#modalVisit');
+$('#visitPreview').onclick=()=>{
+  try{
+    const code=$('#visitCode').value.trim(); if(!code) return;
+    const data = JSON.parse(decodeURIComponent(escape(atob(code))));
+    $('#visitState').textContent = `Гость: ${data.name || 'друг'} • счастье ${data.happy}`;
+  }catch{ $('#visitState').textContent='Неверный код'; }
+};
+$('#visitGiveHeart').onclick=()=>{
+  const code=$('#visitCode').value.trim(); if(!code) return;
+  try{
+    const data=JSON.parse(decodeURIComponent(escape(atob(code))));
+    data.happy = clamp((data.happy||0)+1,0,100);
+    const newCode=btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    $('#visitState').textContent = 'Подарено ❤️. Отправь другу новый код: '+newCode.slice(0,24)+'...';
+  }catch{ $('#visitState').textContent='Неверный код'; }
+};
+
+/* ========== АДМИН-ПАНЕЛЬ ========== */
+if(state.user.id===OWNER_ID) $('#devPanel').classList.remove('hidden');
+$('#devCoins').onclick=()=>{ state.coins+=1000; render(); persist(); };
+$('#devAcc').onclick =()=>{ state.inventory.accessories={bow:true,shades:true,crown:true}; persist(); toast('Аксессуары выданы'); };
+$('#devMax').onclick  =()=>{ state.stats={happy:100,energy:100,clean:100}; render(); persist(); };
+
+/* ========== ВСПОМОГАТЕЛЬНОЕ ========= */
+function fxEmoji(e){
+  const box=$('#fx'); const el=document.createElement('div'); el.className='emoji'; el.textContent=e;
+  const x= 80+Math.random()*100, y=120+Math.random()*40;
+  el.style.left=x+'px'; el.style.top=y+'px'; box.appendChild(el);
+  setTimeout(()=>el.remove(),1200);
+}
+function openModal(sel){ const m=$(sel); m.classList.add('show'); m.addEventListener('click',ev=>{ if(ev.target===m || ev.target.dataset.close!==undefined) m.classList.remove('show'); },{once:true});}
+function toast(t){ const el=document.createElement('div'); el.textContent=t; Object.assign(el.style,{position:'fixed',bottom:'18px',left:'50%',transform:'translateX(-50%)',padding:'10px 14px',borderRadius:'12px',background:'#000c',border:'1px solid #fff2',color:'#fff',zIndex:40}); document.body.appendChild(el); setTimeout(()=>el.remove(),2000); }
+function copy(text){ navigator.clipboard?.writeText(text).catch(()=>{}); }
+
+</script>
 </body>
 </html>
-
