@@ -2,175 +2,706 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tamagocho</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root{
-      --bg:#0f1620;
-      --card:#151f2e;
-      --text:#e6eef8;
-      --muted:#9bb2d0;
-      --accent:#8de87c;
-      --ok:#34d399;
-      --warn:#f59e0b;
-      --bad:#ef4444;
+      --bg:#0f1620; --card:#151e2f; --muted:#8bb2d0; --text:#e6eef8;
+      --accent:#80d2ee; --ok:#34d399; --warn:#f59e0b; --bad:#ef4444;
       --shadow:0 10px 30px rgba(0,0,0,.35);
-      --shadow2:0 10px 24px rgba(0,0,0,.4);
+      --brand:#87CEEB;
     }
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,Segoe UI,Roboto,Arial,"Apple Color Emoji","Segoe UI Emoji";
-    }
-    .wrap{max-width:430px;margin:0 auto;padding:18px 16px 28px}
-    .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:16px}
-    .row{display:flex;gap:10px}
-    .header{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 12px}
-    .avatar{width:70px;height:70px;border-radius:16px;object-fit:cover;box-shadow:var(--shadow)}
-    .h1{font-size:20px;margin:0 0 4px}
-    .muted{color:var(--muted);font-size:14px}
-    .pet-box{display:flex;flex-direction:column;align-items:center;padding:12px 0 4px}
-    .pet{width:265px;height:265px;border-radius:24px;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-    .bars{display:flex;gap:10px;margin-top:12px}
-    .bar{flex:1;background:#0e1520;border-radius:10px;overflow:hidden}
-    .bar label{display:flex;justify-content:space-between;padding:6px 10px;font-size:14px}
-    .bar .fill{height:8px;background:linear-gradient(90deg,#00ffa3,#47a3ff);border-radius:999px;margin:0 8px 10px}
-    .balance{
-      display:flex;align-items:center;justify-content:space-between;
-      background:var(--card);border-radius:16px;padding:12px 14px;margin-top:14px;box-shadow:var(--shadow);
-    }
-    .balance b{font-size:18px}
-    .shop{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .btn{
-      display:inline-flex;align-items:center;justify-content:center;gap:8px;
-      height:44px;border-radius:12px;border:none;cursor:pointer;
-      font-weight:600;transition:.15s transform ease, .15s filter ease;
-    }
-    .btn:active{transform:translateY(1px);filter:brightness(.95)}
-    .btn-accent{background:var(--accent);color:#05210e}
-    .btn-ok{background:var(--ok);color:#041a0f}
-    .btn-warn{background:var(--warn);color:#211502}
-    .btn-ghost{background:#0e1520;color:var(--text);border:1px solid rgba(255,255,255,.06)}
-    .footer{margin-top:16px;text-align:center;color:var(--muted);font-size:13px}
-    .tag{display:inline-block;padding:2px 8px;background:#0e1520;border:1px solid rgba(255,255,255,.06);border-radius:999px}
-    .spinner{
-      width:18px;height:18px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;
-      display:inline-block;animation:spin 1s linear infinite;margin-left:8px;vertical-align:-3px;
-    }
-    @keyframes spin{to{transform:rotate(360deg)}}
-    .toast{
-      position:fixed;left:50%;bottom:14px;transform:translateX(-50%);
-      background:#0e1520;border:1px solid rgba(255,255,255,.08);padding:10px 14px;border-radius:12px;font-size:14px;
-      box-shadow:var(--shadow2);opacity:0;pointer-events:none;transition:.2s
-    }
-    .toast.show{opacity:1}
+    html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
+    .wrap{max-width:480px;margin:0 auto;padding:18px 12px}
+    .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+    .row{display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .header{align-items:center;gap:12px;margin-bottom:12px}
+    .avatar{width:72px;height:72px;border-radius:16px;object-fit:cover;border:2px solid var(--brand)}
+    h1{font-size:18px;margin:0 0 2px}
+    .muted{color:var(--muted);font-size:13px}
+
+    .pet-box{display:flex;flex-direction:column;align-items:center;padding:10px 6px}
+    .pet{position:relative;width:260px;height:260px;border-radius:18px;overflow:hidden;background:#2b3a4f;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+    .pet img.base{width:100%;height:100%;object-fit:cover}
+    .pet .acc{position:absolute;inset:0;pointer-events:none;display:flex;align-items:flex-start;justify-content:center;font-size:56px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+    .bars{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+    .bar{height:12px;background:rgba(255,255,255,.06);border-radius:999px;overflow:hidden}
+    .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--ok),#5eead4);width:50%}
+    .bar .label{margin-top:4px;font-size:12px;color:var(--muted)}
+    .stat-line{display:flex;align-items:center;gap:8px;justify-content:space-between}
+
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .btn{border:none;border-radius:12px;padding:12px;font-weight:600;background:#1f2a44;color:#eaf6ff;box-shadow:var(--shadow)}
+    .btn:active{opacity:.9;transform:translateY(1px)}
+    .btn.ok{background:#1f4337}
+    .btn.warn{background:#4a3514}
+    .btn.accent{background:#17334a}
+    .btn.brand{background:#10435c}
+
+    .section{margin-top:14px}
+    .pill{background:#12233a;border-radius:999px;padding:6px 10px;font-size:12px;color:var(--muted)}
+
+    /* Modals */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:16px}
+    .modal.show{display:flex}
+    .sheet{background:var(--card);border-radius:16px;max-width:520px;width:100%;max-height:82vh;overflow:auto;box-shadow:var(--shadow);padding:14px}
+    .sheet h2{margin:4px 0 8px;font-size:18px}
+    .shop-list,.inv-list,.quest-list,.lb-list{display:flex;flex-direction:column;gap:10px}
+    .item{display:flex;gap:12px;align-items:center;justify-content:space-between;background:#101b2e;border-radius:12px;padding:10px}
+    .item .meta{display:flex;gap:10px;align-items:center}
+    .price{font-weight:700;color:#ffe08a}
+    .tag{font-size:11px;padding:2px 8px;border-radius:999px;background:#0e253c;color:#a9c6de}
+    .sep{height:1px;background:rgba(255,255,255,.06);margin:10px 0}
+
+    .topbar{display:flex;align-items:center;justify-content:space-between}
+    .coins{display:flex;align-items:center;gap:8px;font-weight:700}
+    .coins i{font-style:normal;color:#ffe08a}
+    .level{font-size:12px;color:#a3c7dc}
+
+    .kbd{font-family:ui-monospace,monospace;background:#0f1d2f;border-radius:6px;padding:2px 6px;border:1px solid rgba(255,255,255,.06);font-size:12px}
+    .hint{color:#9ec5dd;font-size:12px}
+    .mini{font-size:12px;color:#9dbddb}
+
+    .flex{display:flex;gap:8px;align-items:center}
+    .right{margin-left:auto}
+    .danger{color:#ffb4b4}
+    .success{color:#8ff1bd}
+    .hidden{display:none !important}
   </style>
 </head>
 <body>
   <div class="wrap">
-    <div class="header">
-      <div>
-        <h1 class="h1" id="hello">Привет!</h1>
-        <div class="muted">Твой питомец ждёт заботы 🐹</div>
-      </div>
-      <img class="avatar" src="./pet.webp" alt="Питомец-аватар">
-    </div>
-
-    <div class="card pet-box">
-      <img class="pet" src="./pet.webp" alt="Питомец">
-      <div class="bars" aria-hidden="true">
-        <div class="bar">
-          <label><span>Сытость</span><span>82%</span></label>
-          <div class="fill" style="width:82%"></div>
-        </div>
-        <div class="bar">
-          <label><span>Настроение</span><span>67%</span></label>
-          <div class="fill" style="width:67%"></div>
+    <div class="row header card">
+      <div class="row" style="gap:12px">
+        <img class="avatar" src="pet.webp" alt="pet"/>
+        <div>
+          <h1 id="greet">TAMAGOCHO</h1>
+          <div class="level" id="levelText">LVL 1 • EXP 0/100</div>
+          <div class="muted" id="username">Привет!</div>
         </div>
       </div>
+      <div class="coins"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='18' height='18'><circle cx='9' cy='9' r='8' fill='%23ffd866'/><circle cx='7' cy='7' r='2.5' fill='%23ffb400'/></svg>"> <i id="coins">0</i></div>
     </div>
 
-    <div class="balance">
-      <div class="muted">Монеты</div>
-      <div><b id="coins">0</b></div>
+    <div class="card">
+      <div class="pet-box">
+        <div class="pet" id="petBox">
+          <img class="base" id="petImg" src="pet.webp" alt="Питомец">
+          <div class="acc" id="accLayer"></div>
+        </div>
+        <div class="bars" id="bars">
+          <!-- динамически -->
+        </div>
+        <div class="grid">
+          <button class="btn ok" id="btnFeed">Покормить</button>
+          <button class="btn accent" id="btnPlay">Поиграть</button>
+          <button class="btn brand" id="btnWash">Помыть</button>
+          <button class="btn warn" id="btnSleep">Спать</button>
+        </div>
+      </div>
     </div>
 
-    <div class="shop">
-      <button class="btn btn-accent" id="buy100">+100 монет</button>
-      <button class="btn btn-ok" id="buy300">+300 монет</button>
-      <button class="btn btn-warn" id="buy1000" style="grid-column:span 2">+1000 монет</button>
+    <div class="section row">
+      <span class="pill">Меню</span>
+      <div class="right flex">
+        <button class="btn" id="btnInventory">Инвентарь</button>
+        <button class="btn" id="btnShop">Магазин</button>
+      </div>
     </div>
 
-    <div class="row" style="margin-top:12px">
-      <button class="btn btn-ghost" id="refresh" style="flex:1">Обновить баланс</button>
-      <button class="btn btn-ghost" id="share" style="flex:1">Поделиться</button>
+    <div class="grid">
+      <button class="btn" id="btnQuests">Квесты</button>
+      <button class="btn" id="btnMini">Мини-игра</button>
+      <button class="btn" id="btnLeaderboard">Лидерборд</button>
+      <button class="btn" id="btnSettings">Настройки</button>
     </div>
 
-    <div class="footer">
-      <span class="tag">v1.0</span>
-      <div style="margin-top:6px">Оплата защищена • ЮKassa</div>
+    <div class="mini" style="margin-top:10px">💡 Характеристики со временем снижаются. Поддерживай их предметами и действиями, выполняй квесты, играй в мини-игру и копи семечки!</div>
+  </div>
+
+  <!-- SHOP -->
+  <div class="modal" id="modalShop">
+    <div class="sheet">
+      <div class="topbar">
+        <h2>Магазин</h2>
+        <div class="coins"><img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16'><circle cx='8' cy='8' r='7' fill='%23ffd866'/></svg>"> <i id="coinsShop">0</i></div>
+      </div>
+      <div class="sep"></div>
+
+      <div class="tag">Обычные предметы</div>
+      <div class="shop-list" id="shopRegular"></div>
+
+      <div class="sep"></div>
+      <div class="tag">Премиум аксессуары (косметика)</div>
+      <div class="shop-list" id="shopPremium"></div>
+
+      <div class="sep"></div>
+      <button class="btn right" id="closeShop">Закрыть</button>
     </div>
   </div>
 
-  <div id="toast" class="toast">Готово</div>
+  <!-- INVENTORY -->
+  <div class="modal" id="modalInv">
+    <div class="sheet">
+      <div class="topbar">
+        <h2>Инвентарь</h2>
+        <div class="hint">Тап по аксессуару — надеть/снять</div>
+      </div>
+      <div class="sep"></div>
+      <div class="tag">Расходники</div>
+      <div class="inv-list" id="invConsumables"></div>
+      <div class="sep"></div>
+      <div class="tag">Аксессуары</div>
+      <div class="inv-list" id="invAccessories"></div>
+      <div class="sep"></div>
+      <button class="btn right" id="closeInv">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- QUESTS -->
+  <div class="modal" id="modalQuests">
+    <div class="sheet">
+      <div class="topbar">
+        <h2>Квесты дня</h2>
+        <span class="hint">Сбрасываются каждое утро</span>
+      </div>
+      <div class="sep"></div>
+      <div class="quest-list" id="questList"></div>
+      <div class="sep"></div>
+      <button class="btn right" id="closeQuests">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- MINI GAME -->
+  <div class="modal" id="modalMini">
+    <div class="sheet">
+      <div class="topbar">
+        <h2>Мини-игра: Tap-Love</h2>
+        <span class="hint">Нажимай на питомца и набери как можно больше “сердец” за 10 секунд!</span>
+      </div>
+      <div class="sep"></div>
+      <div class="pet" id="miniPet" style="width:220px;height:220px;margin:0 auto">
+        <img class="base" src="pet.webp" alt="">
+        <div class="acc" id="miniAcc"></div>
+      </div>
+      <div class="row" style="justify-content:center;margin:10px 0">
+        <div class="pill">⏱ <span id="miniTime">10</span>s</div>
+        <div class="pill">❤️ <span id="miniScore">0</span></div>
+      </div>
+      <div class="sep"></div>
+      <div class="row" style="justify-content:center;gap:8px">
+        <button class="btn" id="startMini">Старт</button>
+        <button class="btn" id="closeMini">Закрыть</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD -->
+  <div class="modal" id="modalLB">
+    <div class="sheet">
+      <div class="topbar">
+        <h2>Лидерборд</h2>
+        <span class="hint">Соревнуйтесь по уровню и общему опыту</span>
+      </div>
+      <div class="sep"></div>
+      <div class="tag">Локальный (на устройстве)</div>
+      <div class="lb-list" id="lbLocal"></div>
+      <div class="sep"></div>
+      <div class="tag">Глобальный (опционально)</div>
+      <div class="lb-list" id="lbGlobal"></div>
+      <div class="sep"></div>
+      <div class="row">
+        <button class="btn" id="syncLocal">Обновить локальный</button>
+        <button class="btn" id="pushGlobal">Отправить в глобальный</button>
+        <button class="btn right" id="closeLB">Закрыть</button>
+      </div>
+      <div class="mini">🛰 Если позже укажешь BACKEND_URL, глобальная таблица начнёт работать автоматически.</div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="modal" id="modalSettings">
+    <div class="sheet">
+      <div class="topbar"><h2>Настройки</h2></div>
+      <div class="sep"></div>
+      <div class="item">
+        <div class="meta">
+          <div>
+            <div class="muted">Сбросить прогресс</div>
+            <div class="mini">Удаляет локальные сохранения</div>
+          </div>
+        </div>
+        <button class="btn danger" id="wipeSave">Сброс</button>
+      </div>
+
+      <div id="devPanel" class="hidden">
+        <div class="sep"></div>
+        <div class="tag">Панель создателя</div>
+        <div class="item">
+          <div class="meta"><b>+1000 Seeds</b></div>
+          <button class="btn ok" id="devCoins">Выдать</button>
+        </div>
+        <div class="item">
+          <div class="meta"><b>Выдать все аксессуары</b></div>
+          <button class="btn ok" id="devAcc">Выдать</button>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+      <button class="btn right" id="closeSettings">Закрыть</button>
+    </div>
+  </div>
 
   <script>
-    const API = 'https://tamagocho-backend.onrender.com';
-    const tg = window.Telegram?.WebApp; try { tg?.ready(); } catch(e){}
-    const $ = (s)=>document.querySelector(s);
-    const toast = (t,ms=1800)=>{ const el=$('#toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), ms); };
-    let me = {user_id:null,first_name:'',username:'',coins:0};
-    const getInitData = ()=> (tg?.initData || '');
+    // ========= CONFIG =========
+    const OWNER_ID = 1907547038; // твой Telegram user id (из RawDataBot)
+    const BACKEND_URL = ""; // если подключишь бэкенд (Render) — сюда его базовый URL, иначе оставь пустым
 
-    async function loadMe(){
-      try{
-        $('#refresh').disabled=true; $('#refresh').innerHTML='Обновление <span class="spinner"></span>';
-        const r = await fetch(`${API}/api/me`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getInitData()})});
-        if(!r.ok) throw new Error(await r.text());
-        me = await r.json();
-        $('#coins').textContent = me.coins ?? 0;
-        $('#hello').textContent = `Привет, ${me.first_name || 'игрок'}!`;
-      }catch(e){ console.error(e); toast('Не удалось получить профиль'); }
-      finally{ $('#refresh').disabled=false; $('#refresh').textContent='Обновить баланс'; }
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.setHeaderColor("#101820");
+      tg.setBackgroundColor("#0f1620");
     }
 
-    async function buyCoins(packId){
-      const btn = ({1:$('#buy100'),2:$('#buy300'),3:$('#buy1000')})[packId];
-      const prev = btn.textContent;
-      try{
-        btn.disabled=true; btn.innerHTML=prev+' <span class="spinner"></span>';
-        const r = await fetch(`${API}/api/payments/create`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getInitData(),packId})});
-        if(!r.ok) throw new Error(await r.text());
-        const data = await r.json();
-        if(data.instant){ await loadMe(); tg?.HapticFeedback?.notificationOccurred('success'); toast('Монеты начислены!'); return; }
-        const url = data.confirmation_url;
-        if(tg?.openLink) tg.openLink(url,{try_instant_view:false}); else window.open(url,'_blank');
-        toast('После оплаты вернись и обнови баланс');
-      }catch(e){ console.error(e); toast('Ошибка: '+(e?.message||'платёж')); }
-      finally{
-        btn.disabled=false;
-        if(packId===1) btn.textContent='+100 монет';
-        if(packId===2) btn.textContent='+300 монет';
-        if(packId===3) btn.textContent='+1000 монет';
+    // ========= STATE =========
+    const now = () => Date.now();
+    const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+
+    const defaultState = (uid, name) => ({
+      user:{ id: uid, name: name || "Гость" },
+      coins: 120,
+      lvl: 1,
+      exp: 0,
+      expNext: 100,
+      stats: {
+        health: 85, hunger: 70, mood: 70, hygiene: 70, energy: 80
+      },
+      lastTick: now(),
+      inventory:{
+        consumables:{
+          food: 2, soap: 1, toy: 0, pillow: 1
+        },
+        accessories:{ bow:false, shades:false, crown:false },
+        equipped:{ bow:false, shades:false, crown:false }
+      },
+      quests: genDailyQuests(),
+      bestMini: 0,
+      leaderboardLocal: [], // [{name, lvl, exp, date}]
+    });
+
+    function genDailyQuests(){
+      return [
+        { id:"feed3", title:"Покормить хомяка 3 раза", progress:0, goal:3, reward:40, exp:20, done:false },
+        { id:"play2", title:"Поиграть 2 раза", progress:0, goal:2, reward:30, exp:15, done:false },
+        { id:"mini1", title:"Сыграть в мини-игру 1 раз", progress:0, goal:1, reward:35, exp:20, done:false },
+        { id:"clean1", title:"Помыть 1 раз", progress:0, goal:1, reward:25, exp:10, done:false },
+      ];
+    }
+
+    // ========= LOAD/SAVE =========
+    function storageKey(uid){ return `tamagocho:${uid||"guest"}`; }
+
+    function loadState(){
+      const unsafe = tg?.initDataUnsafe;
+      const uid = unsafe?.user?.id || "guest";
+      const name = unsafe?.user?.first_name || "Игрок";
+      const key = storageKey(uid);
+      const raw = localStorage.getItem(key);
+      let s = raw ? JSON.parse(raw) : defaultState(uid, name);
+      // ежедневный сброс квестов
+      const last = localStorage.getItem(key+":qday");
+      const today = new Date().toDateString();
+      if (last !== today){
+        s.quests = genDailyQuests();
+        localStorage.setItem(key+":qday", today);
+      }
+      return s;
+    }
+
+    function saveState(){
+      localStorage.setItem(storageKey(state.user.id), JSON.stringify(state));
+      renderAll();
+    }
+
+    // ========= GAME TICK =========
+    function tick(){
+      const dt = (now() - state.lastTick)/1000; // sec
+      if (dt > 2){ // вне фокуса/возврат — нормализуем
+        const decay = Math.min(dt/60, 20); // не обнулять слишком быстро
+        // базовый спад
+        state.stats.hunger = clamp(state.stats.hunger - 0.05*decay, 0, 100);
+        state.stats.mood   = clamp(state.stats.mood   - 0.04*decay, 0, 100);
+        state.stats.hygiene= clamp(state.stats.hygiene- 0.03*decay, 0, 100);
+        state.stats.energy = clamp(state.stats.energy - 0.03*decay, 0, 100);
+        // здоровье падает если другие просели
+        const avg = (state.stats.hunger+state.stats.mood+state.stats.hygiene+state.stats.energy)/4;
+        if (avg < 40) state.stats.health = clamp(state.stats.health - 0.08*decay, 0, 100);
+        else state.stats.health = clamp(state.stats.health + 0.02*decay, 0, 100);
+      }
+      state.lastTick = now();
+      saveState();
+    }
+    setInterval(tick, 6000);
+
+    // ========= ACTIONS =========
+    function addExp(v){
+      state.exp += v;
+      while (state.exp >= state.expNext){
+        state.exp -= state.expNext;
+        state.lvl++;
+        state.expNext = Math.round(state.expNext*1.25);
+        toast(`🎉 Уровень ${state.lvl}!`);
       }
     }
 
-    function share(){
-      const url='https://t.me/TamagochoBot';
-      if(navigator.share) navigator.share({title:'Мой питомец Tamagocho',text:'Заботимся о питомце вместе!',url}).catch(()=>{});
-      else if(tg?.openLink) tg.openLink(url); else window.open(url,'_blank');
+    function spendCoins(n){ if (state.coins>=n){ state.coins-=n; return true } return false; }
+    function giveCoins(n){ state.coins += n; }
+
+    function useConsumable(key){
+      const have = state.inventory.consumables[key]||0;
+      if (!have) return toast("Нет в инвентаре");
+      state.inventory.consumables[key]--;
+      if (key==="food")     { state.stats.hunger = 100; addExp(5); }
+      if (key==="soap")     { state.stats.hygiene= 100; addExp(5); }
+      if (key==="toy")      { state.stats.mood   = clamp(state.stats.mood+50,0,100); addExp(6);}
+      if (key==="pillow")   { state.stats.energy = 100; addExp(6); }
+      saveState();
     }
 
-    $('#buy100').addEventListener('click',()=>buyCoins(1));
-    $('#buy300').addEventListener('click',()=>buyCoins(2));
-    $('#buy1000').addEventListener('click',()=>buyCoins(3));
-    $('#refresh').addEventListener('click',loadMe);
-    $('#share').addEventListener('click',share);
+    function toggleAccessory(key){
+      const have = !!state.inventory.accessories[key];
+      if (!have) return toast("Сначала купи аксессуар в магазине");
+      const cur = !!state.inventory.equipped[key];
+      state.inventory.equipped[key] = !cur;
+      saveState();
+    }
 
-    loadMe();
+    // кнопки действий (без расходников)
+    document.addEventListener("click", (e)=>{
+      if (e.target.id==="btnFeed"){
+        state.stats.hunger = clamp(state.stats.hunger+25,0,100);
+        incQuest("feed3",1);
+        addExp(3);
+        toast("🍽 Питомец доволен!");
+        saveState();
+      }
+      if (e.target.id==="btnPlay"){
+        state.stats.mood = clamp(state.stats.mood+18,0,100);
+        incQuest("play2",1);
+        addExp(3);
+        saveState();
+      }
+      if (e.target.id==="btnWash"){
+        state.stats.hygiene = clamp(state.stats.hygiene+18,0,100);
+        incQuest("clean1",1);
+        addExp(3);
+        saveState();
+      }
+      if (e.target.id==="btnSleep"){
+        state.stats.energy = clamp(state.stats.energy+25,0,100);
+        addExp(3);
+        saveState();
+      }
+    });
+
+    // ========= QUESTS =========
+    function incQuest(id, v){
+      const q = state.quests.find(x=>x.id===id);
+      if (!q || q.done) return;
+      q.progress = clamp(q.progress + (v||1), 0, q.goal);
+      if (q.progress >= q.goal){
+        q.done = true;
+        giveCoins(q.reward);
+        addExp(q.exp);
+        toast(`✅ Квест “${q.title}” выполнен! +${q.reward} Seeds, +${q.exp} EXP`);
+      }
+      saveState();
+    }
+
+    // ========= MINI GAME =========
+    let miniTimer=null, miniLeft=10, miniScore=0;
+    function startMini(){
+      miniLeft = 10; miniScore = 0;
+      $("#miniTime").textContent = miniLeft;
+      $("#miniScore").textContent = miniScore;
+      clearInterval(miniTimer);
+      miniTimer = setInterval(()=>{
+        miniLeft--; $("#miniTime").textContent = miniLeft;
+        if (miniLeft<=0){
+          clearInterval(miniTimer);
+          const prize = 10 + Math.floor(miniScore/3);
+          giveCoins(prize);
+          addExp(10);
+          incQuest("mini1",1);
+          if (miniScore>state.bestMini) state.bestMini = miniScore;
+          saveState();
+          toast(`🏁 Результат: ${miniScore}. Награда +${prize} Seeds`);
+        }
+      }, 1000);
+    }
+
+    // ========= LEADERBOARD =========
+    async function refreshLocalLB(){
+      // храним топ-10 локально
+      const entry = { name: state.user.name, lvl: state.lvl, exp: state.exp, date: new Date().toISOString() };
+      let arr = state.leaderboardLocal||[];
+      arr.unshift(entry);
+      arr = arr.slice(0,10);
+      state.leaderboardLocal = arr;
+      saveState();
+    }
+
+    async function pushGlobal(){
+      if (!BACKEND_URL){ toast("Глобальный сервер не подключен"); return; }
+      try{
+        await fetch(`${BACKEND_URL}/api/leaderboard/push`, {
+          method:"POST", headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ id: state.user.id, name: state.user.name, lvl: state.lvl, exp: state.exp })
+        });
+        toast("🌍 Отправлено в глобальный рейтинг");
+      }catch(e){ toast("Не удалось отправить в глобальный рейтинг"); }
+    }
+    async function getGlobal(){
+      $("#lbGlobal").innerHTML = `<div class="mini">Загрузка...</div>`;
+      if (!BACKEND_URL){ $("#lbGlobal").innerHTML = `<div class="mini">Сервер не подключен</div>`; return; }
+      try{
+        const r = await fetch(`${BACKEND_URL}/api/leaderboard/top`);
+        const data = await r.json();
+        $("#lbGlobal").innerHTML = data.map((x,i)=>lbRow(i+1, x.name, x.lvl, x.exp)).join("");
+      }catch(e){
+        $("#lbGlobal").innerHTML = `<div class="mini">Ошибка загрузки</div>`;
+      }
+    }
+
+    // ========= SHOP =========
+    const REGULAR = [
+      {key:"food",  title:"Корм",    price:25,  desc:"Полностью восстанавливает сытость", onUse:()=>useConsumable("food")},
+      {key:"soap",  title:"Мыло",    price:25,  desc:"Полностью восстанавливает гигиену", onUse:()=>useConsumable("soap")},
+      {key:"toy",   title:"Игрушка", price:35,  desc:"Сильно повышает настроение",        onUse:()=>useConsumable("toy")},
+      {key:"pillow",title:"Подушка", price:30,  desc:"Полностью восстанавливает энергию", onUse:()=>useConsumable("pillow")},
+    ];
+    const PREMIUM = [
+      {key:"bow",    title:"Бантик 🎀",      price:120, premium:true},
+      {key:"shades", title:"Очки 😎",        price:150, premium:true},
+      {key:"crown",  title:"Корона 👑",      price:220, premium:true},
+    ];
+
+    function buyItem(item){
+      if (!spendCoins(item.price)) return toast("Недостаточно Seeds");
+      if (item.premium){
+        state.inventory.accessories[item.key] = true;
+        toast(`Куплено: ${item.title}`);
+      }else{
+        state.inventory.consumables[item.key] = (state.inventory.consumables[item.key]||0)+1;
+        toast(`Куплено: ${item.title}`);
+      }
+      addExp(4);
+      saveState();
+    }
+
+    // ========= RENDER =========
+    function $(sel){ return document.querySelector(sel); }
+    function bar(name,val,color){
+      return `
+        <div>
+          <div class="stat-line"><span class="muted">${name}</span><span>${Math.round(val)}%</span></div>
+          <div class="bar"><i style="width:${val}%;background:${color}"></i></div>
+        </div>`;
+    }
+    function renderBars(){
+      const s = state.stats;
+      $("#bars").innerHTML = 
+        bar("Здоровье", s.health, "linear-gradient(90deg,#34d399,#22c55e)")+
+        bar("Сытость",  s.hunger, "linear-gradient(90deg,#f59e0b,#fde047)")+
+        bar("Настроение", s.mood, "linear-gradient(90deg,#60a5fa,#22d3ee)")+
+        bar("Гигиена", s.hygiene, "linear-gradient(90deg,#a78bfa,#8b5cf6)")+
+        bar("Энергия", s.energy, "linear-gradient(90deg,#fb7185,#fda4af)");
+    }
+    function renderHeader(){
+      $("#coins").textContent = state.coins;
+      $("#coinsShop").textContent = state.coins;
+      $("#levelText").textContent = `LVL ${state.lvl} • EXP ${state.exp}/${state.expNext}`;
+      const uname = state.user.name || "Игрок";
+      $("#username").textContent = `Привет, ${uname}!`;
+      $("#greet").textContent = "TAMAGOCHO";
+      // аксессуары
+      const wear = [];
+      if (state.inventory.equipped.bow) wear.push("🎀");
+      if (state.inventory.equipped.shades) wear.push("🕶️");
+      if (state.inventory.equipped.crown) wear.push("👑");
+      $("#accLayer").textContent = wear.join(" ");
+      $("#miniAcc").textContent = wear.join(" ");
+      if (state.user.id==OWNER_ID) $("#devPanel").classList.remove("hidden");
+    }
+    function renderShop(){
+      $("#shopRegular").innerHTML = REGULAR.map(it=>`
+        <div class="item">
+          <div class="meta">
+            <div>
+              <b>${it.title}</b>
+              <div class="mini">${it.desc||""}</div>
+            </div>
+          </div>
+          <div class="flex">
+            <div class="price">💰 ${it.price}</div>
+            <button class="btn ok" data-buy="${it.key}">Купить</button>
+          </div>
+        </div>
+      `).join("");
+      $("#shopPremium").innerHTML = PREMIUM.map(it=>`
+        <div class="item">
+          <div class="meta">
+            <div><b>${it.title}</b><div class="mini">Косметический аксессуар</div></div>
+          </div>
+          <div class="flex">
+            <div class="price">💎 ${it.price}</div>
+            <button class="btn ok" data-buy="${it.key}" data-premium="1">Купить</button>
+          </div>
+        </div>
+      `).join("");
+    }
+    function renderInventory(){
+      const c = state.inventory.consumables;
+      $("#invConsumables").innerHTML = REGULAR.map(it=>{
+        const n = c[it.key]||0;
+        return `
+          <div class="item">
+            <div class="meta"><b>${it.title}</b><span class="tag">x${n}</span></div>
+            <button class="btn" data-use="${it.key}" ${n? "":"disabled"}>Использовать</button>
+          </div>`;
+      }).join("");
+      const a = state.inventory.accessories, e = state.inventory.equipped;
+      $("#invAccessories").innerHTML = PREMIUM.map(it=>{
+        const have = !!a[it.key];
+        const on = !!e[it.key];
+        return `
+          <div class="item">
+            <div class="meta"><b>${it.title}</b> ${have? (on? '<span class="tag">надето</span>':'<span class="tag">есть</span>'):'<span class="tag">нет</span>'}</div>
+            <button class="btn" data-toggle="${it.key}" ${have? "":"disabled"}>${on?"Снять":"Надеть"}</button>
+          </div>`;
+      }).join("");
+    }
+    function renderQuests(){
+      $("#questList").innerHTML = state.quests.map(q=>{
+        const pct = Math.floor(100*q.progress/q.goal);
+        return `
+          <div class="item">
+            <div class="meta" style="flex:1">
+              <div>
+                <b>${q.title}</b>
+                <div class="mini">Прогресс: ${q.progress}/${q.goal} • Награда: +${q.reward} Seeds, +${q.exp} EXP</div>
+                <div class="bar"><i style="width:${pct}%;background:linear-gradient(90deg,#60a5fa,#22d3ee)"></i></div>
+              </div>
+            </div>
+            <div>${q.done?'<span class="success">Выполнено</span>':'<span class="hint">В процессе</span>'}</div>
+          </div>`;
+      }).join("");
+    }
+    function lbRow(pos,name,lvl,exp){
+      return `<div class="item"><div class="meta"><b>#${pos}</b> <span>${name}</span></div><div class="mini">LVL ${lvl} • EXP ${exp}</div></div>`;
+    }
+    function renderLB(){
+      const arr = state.leaderboardLocal||[];
+      $("#lbLocal").innerHTML = arr.map((x,i)=>lbRow(i+1,x.name,x.lvl,x.exp)).join("") || `<div class="mini">Пока пусто. Нажми “Обновить локальный”.</div>`;
+    }
+    function renderAll(){ renderHeader(); renderBars(); }
+
+    // ========= EVENTS (UI) =========
+    // open/close modals
+    const show = el => el.classList.add("show");
+    const hide = el => el.classList.remove("show");
+
+    $("#btnShop").onclick = ()=>{ renderShop(); show($("#modalShop")); };
+    $("#closeShop").onclick = ()=> hide($("#modalShop"));
+    $("#btnInventory").onclick = ()=>{ renderInventory(); show($("#modalInv")); };
+    $("#closeInv").onclick = ()=> hide($("#modalInv"));
+    $("#btnQuests").onclick = ()=>{ renderQuests(); show($("#modalQuests")); };
+    $("#closeQuests").onclick = ()=> hide($("#modalQuests"));
+    $("#btnMini").onclick = ()=> show($("#modalMini"));
+    $("#closeMini").onclick = ()=> hide($("#modalMini"));
+    $("#btnLeaderboard").onclick = ()=>{ renderLB(); getGlobal(); show($("#modalLB")); };
+    $("#closeLB").onclick = ()=> hide($("#modalLB"));
+    $("#btnSettings").onclick = ()=> show($("#modalSettings"));
+    $("#closeSettings").onclick = ()=> hide($("#modalSettings"));
+
+    // shop clicks
+    $("#modalShop").addEventListener("click",(e)=>{
+      const buyKey = e.target.dataset.buy;
+      if (!buyKey) return;
+      const premium = !!e.target.dataset.premium;
+      const list = premium? PREMIUM : REGULAR;
+      const it = list.find(x=>x.key===buyKey);
+      if (it) buyItem(it);
+    });
+    // inventory clicks
+    $("#modalInv").addEventListener("click",(e)=>{
+      const u = e.target.dataset.use; if (u){ useConsumable(u); renderInventory(); return; }
+      const t = e.target.dataset.toggle; if (t){ toggleAccessory(t); renderInventory(); }
+    });
+
+    // mini game
+    $("#startMini").onclick = ()=> startMini();
+    $("#miniPet").addEventListener("click", ()=>{
+      if (miniLeft>0){
+        miniScore++; $("#miniScore").textContent = miniScore;
+      }
+    });
+
+    // leaderboard buttons
+    $("#syncLocal").onclick = ()=>{ refreshLocalLB(); renderLB(); };
+    $("#pushGlobal").onclick = ()=> pushGlobal();
+
+    // settings
+    $("#wipeSave").onclick = ()=>{
+      if (!confirm("Точно удалить локальные данные?")) return;
+      localStorage.removeItem(storageKey(state.user.id));
+      location.reload();
+    };
+    $("#devCoins").onclick = ()=>{ giveCoins(1000); saveState(); };
+    $("#devAcc").onclick   = ()=>{ state.inventory.accessories={bow:true,shades:true,crown:true}; saveState(); };
+
+    // ========= TOAST =========
+    let toastTimer=null;
+    function toast(msg){
+      tg?.showPopup ? tg.showPopup({message:msg}) : (()=>{
+        clearTimeout(toastTimer);
+        let el = document.getElementById("toast");
+        if (!el){
+          el = document.createElement("div");
+          el.id = "toast";
+          el.style.cssText = "position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#111c2a;color:#eaf6ff;padding:10px 14px;border-radius:10px;box-shadow:0 8px 26px rgba(0,0,0,.35);z-index:9999;font-size:14px";
+          document.body.appendChild(el);
+        }
+        el.textContent = msg;
+        el.style.opacity = "1";
+        toastTimer = setTimeout(()=>{ el.style.opacity="0"; }, 1600);
+      })();
+    }
+
+    // ========= INIT =========
+    let state = loadState();
+
+    // Приветствие
+    if (tg?.initDataUnsafe?.user?.first_name){
+      $("#username").textContent = `Привет, ${tg.initDataUnsafe.user.first_name}!`;
+    }
+
+    renderAll();
+
+    // Дополнительное: клик по питомцу даёт немного настроения
+    $("#petBox").addEventListener("click", ()=>{
+      state.stats.mood = clamp(state.stats.mood + 2, 0, 100);
+      saveState();
+    });
+
+    // первичная запись в локальный лидерборд (если пусто)
+    if (!state.leaderboardLocal || !state.leaderboardLocal.length){
+      refreshLocalLB();
+    }
   </script>
 </body>
 </html>
+
