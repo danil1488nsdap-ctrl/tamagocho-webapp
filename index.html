@@ -2,141 +2,175 @@
 <html lang="ru">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Tamagocho</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    :root { --bg1:#101820; --bg2:#1b3a3a; --card:#162429; --text:#eaf2f2; --accent:#87ceeb; --good:#41d695; --warn:#ffb84d; }
+    :root{
+      --bg:#0f1620;
+      --card:#151f2e;
+      --text:#e6eef8;
+      --muted:#9bb2d0;
+      --accent:#8de87c;
+      --ok:#34d399;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --shadow2:0 10px 24px rgba(0,0,0,.4);
+    }
     *{box-sizing:border-box}
     body{
-      margin:0; min-height:100dvh; display:flex; align-items:center; justify-content:center;
-      background: radial-gradient(65% 65% at 50% 30%, var(--bg2), var(--bg1));
-      color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,Segoe UI,Roboto,Arial,"Apple Color Emoji","Segoe UI Emoji";
     }
-    .app{
-      width:min(900px, 94vw); background:rgba(22,36,41,.7); border:1px solid rgba(255,255,255,.06);
-      backdrop-filter: blur(8px); border-radius:24px; padding:20px; box-shadow:0 20px 40px rgba(0,0,0,.35);
+    .wrap{max-width:430px;margin:0 auto;padding:18px 16px 28px}
+    .card{background:var(--card);border-radius:18px;box-shadow:var(--shadow);padding:16px}
+    .row{display:flex;gap:10px}
+    .header{display:flex;align-items:center;justify-content:space-between;padding:6px 2px 12px}
+    .avatar{width:70px;height:70px;border-radius:16px;object-fit:cover;box-shadow:var(--shadow)}
+    .h1{font-size:20px;margin:0 0 4px}
+    .muted{color:var(--muted);font-size:14px}
+    .pet-box{display:flex;flex-direction:column;align-items:center;padding:12px 0 4px}
+    .pet{width:265px;height:265px;border-radius:24px;object-fit:cover;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+    .bars{display:flex;gap:10px;margin-top:12px}
+    .bar{flex:1;background:#0e1520;border-radius:10px;overflow:hidden}
+    .bar label{display:flex;justify-content:space-between;padding:6px 10px;font-size:14px}
+    .bar .fill{height:8px;background:linear-gradient(90deg,#00ffa3,#47a3ff);border-radius:999px;margin:0 8px 10px}
+    .balance{
+      display:flex;align-items:center;justify-content:space-between;
+      background:var(--card);border-radius:16px;padding:12px 14px;margin-top:14px;box-shadow:var(--shadow);
     }
-    .top{display:flex; gap:18px; align-items:center; justify-content:space-between; flex-wrap:wrap}
-    h1{font-size:24px; margin:0}
-    .user{opacity:.8; font-size:14px}
-    .pet{
-      display:grid; grid-template-columns: 280px 1fr; gap:20px; align-items:center; margin-top:14px;
-    }
-    .pet .imgWrap{
-      background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-      border-radius:20px; padding:14px; display:flex; align-items:center; justify-content:center;
-    }
-    .pet img{ width:100%; height:auto; border-radius:16px; display:block; }
-    .stats{ display:grid; gap:12px }
-    .bar{ background:rgba(255,255,255,.08); border-radius:12px; overflow:hidden; height:16px; position:relative }
-    .bar>span{ position:absolute; inset:0; width:0; transition:width .35s ease; }
-    .bar.food>span{ background:linear-gradient(90deg, var(--good), #2fbf83) }
-    .bar.mood>span{ background:linear-gradient(90deg, #ffc857, var(--warn)) }
-    .bar.energy>span{ background:linear-gradient(90deg, #8aa5ff, #6a8cff) }
-    .labels{ display:flex; justify-content:space-between; font-size:13px; margin-top:4px; opacity:.9 }
-    .actions{ display:flex; flex-wrap:wrap; gap:10px; margin-top:18px }
+    .balance b{font-size:18px}
+    .shop{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
     .btn{
-      background:var(--accent); color:#001018; border:0; padding:12px 16px; border-radius:12px; cursor:pointer; font-weight:600;
-      box-shadow: 0 6px 16px rgba(135,206,235,.35);
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      height:44px;border-radius:12px;border:none;cursor:pointer;
+      font-weight:600;transition:.15s transform ease, .15s filter ease;
     }
-    .btn.secondary{ background:#2b3d43; color:#e9f1f1; box-shadow:none; border:1px solid rgba(255,255,255,.06) }
-    .footer{ margin-top:14px; font-size:12px; opacity:.7; text-align:center }
-    @media (max-width:720px){ .pet{ grid-template-columns: 1fr; } }
+    .btn:active{transform:translateY(1px);filter:brightness(.95)}
+    .btn-accent{background:var(--accent);color:#05210e}
+    .btn-ok{background:var(--ok);color:#041a0f}
+    .btn-warn{background:var(--warn);color:#211502}
+    .btn-ghost{background:#0e1520;color:var(--text);border:1px solid rgba(255,255,255,.06)}
+    .footer{margin-top:16px;text-align:center;color:var(--muted);font-size:13px}
+    .tag{display:inline-block;padding:2px 8px;background:#0e1520;border:1px solid rgba(255,255,255,.06);border-radius:999px}
+    .spinner{
+      width:18px;height:18px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;
+      display:inline-block;animation:spin 1s linear infinite;margin-left:8px;vertical-align:-3px;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast{
+      position:fixed;left:50%;bottom:14px;transform:translateX(-50%);
+      background:#0e1520;border:1px solid rgba(255,255,255,.08);padding:10px 14px;border-radius:12px;font-size:14px;
+      box-shadow:var(--shadow2);opacity:0;pointer-events:none;transition:.2s
+    }
+    .toast.show{opacity:1}
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="top">
-      <h1>🐹 Tamagocho</h1>
-      <div class="user" id="hello">Загрузка…</div>
+  <div class="wrap">
+    <div class="header">
+      <div>
+        <h1 class="h1" id="hello">Привет!</h1>
+        <div class="muted">Твой питомец ждёт заботы 🐹</div>
+      </div>
+      <img class="avatar" src="./pet.webp" alt="Питомец-аватар">
     </div>
 
-    <div class="pet">
-      <div class="imgWrap">
-        <!-- теперь путь правильный -->
-        <img src="./pet.webp" alt="Питомец" loading="eager">
-      </div>
-
-      <div class="right">
-        <div class="stats">
-          <div>
-            <div class="labels"><span>Сытость</span><span id="foodVal">0%</span></div>
-            <div class="bar food"><span id="foodBar"></span></div>
-          </div>
-          <div>
-            <div class="labels"><span>Настроение</span><span id="moodVal">0%</span></div>
-            <div class="bar mood"><span id="moodBar"></span></div>
-          </div>
-          <div>
-            <div class="labels"><span>Энергия</span><span id="energyVal">0%</span></div>
-            <div class="bar energy"><span id="energyBar"></span></div>
-          </div>
+    <div class="card pet-box">
+      <img class="pet" src="./pet.webp" alt="Питомец">
+      <div class="bars" aria-hidden="true">
+        <div class="bar">
+          <label><span>Сытость</span><span>82%</span></label>
+          <div class="fill" style="width:82%"></div>
         </div>
-
-        <div class="actions">
-          <button class="btn" onclick="act('feed')">🍗 Кормить</button>
-          <button class="btn" onclick="act('play')">🎲 Играть</button>
-          <button class="btn secondary" onclick="act('sleep')">💤 Спать</button>
-          <button class="btn secondary" onclick="resetPet()">🔁 Сброс</button>
-          <button class="btn" onclick="donate()">⭐ Поддержать</button>
+        <div class="bar">
+          <label><span>Настроение</span><span>67%</span></label>
+          <div class="fill" style="width:67%"></div>
         </div>
       </div>
     </div>
 
-    <div class="footer">Прогресс сохраняется локально. Mini App использует Telegram WebApp SDK.</div>
+    <div class="balance">
+      <div class="muted">Монеты</div>
+      <div><b id="coins">0</b></div>
+    </div>
+
+    <div class="shop">
+      <button class="btn btn-accent" id="buy100">+100 монет</button>
+      <button class="btn btn-ok" id="buy300">+300 монет</button>
+      <button class="btn btn-warn" id="buy1000" style="grid-column:span 2">+1000 монет</button>
+    </div>
+
+    <div class="row" style="margin-top:12px">
+      <button class="btn btn-ghost" id="refresh" style="flex:1">Обновить баланс</button>
+      <button class="btn btn-ghost" id="share" style="flex:1">Поделиться</button>
+    </div>
+
+    <div class="footer">
+      <span class="tag">v1.0</span>
+      <div style="margin-top:6px">Оплата защищена • ЮKassa</div>
+    </div>
   </div>
 
+  <div id="toast" class="toast">Готово</div>
+
   <script>
-    const tg = window.Telegram?.WebApp;
-    tg?.ready?.();
+    const API = 'https://tamagocho-backend.onrender.com';
+    const tg = window.Telegram?.WebApp; try { tg?.ready(); } catch(e){}
+    const $ = (s)=>document.querySelector(s);
+    const toast = (t,ms=1800)=>{ const el=$('#toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), ms); };
+    let me = {user_id:null,first_name:'',username:'',coins:0};
+    const getInitData = ()=> (tg?.initData || '');
 
-    const uid = tg?.initDataUnsafe?.user?.id || 'guest';
-    const KEY = `tamagocho_state_${uid}`;
-
-    const state = JSON.parse(localStorage.getItem(KEY) || '{}');
-    let pet = {
-      food: clamp(state.food ?? 70),
-      mood: clamp(state.mood ?? 70),
-      energy: clamp(state.energy ?? 70),
-      last: Date.now()
-    };
-
-    const el = {
-      hello: document.getElementById('hello'),
-      foodBar: document.getElementById('foodBar'), foodVal: document.getElementById('foodVal'),
-      moodBar: document.getElementById('moodBar'), moodVal: document.getElementById('moodVal'),
-      energyBar: document.getElementById('energyBar'), energyVal: document.getElementById('energyVal'),
-    };
-
-    el.hello.textContent = `Привет, ${tg?.initDataUnsafe?.user?.first_name || 'друг'}!`;
-
-    function clamp(v){ return Math.max(0, Math.min(100, Math.round(v))) }
-    function save(){ localStorage.setItem(KEY, JSON.stringify(pet)) }
-    function render(){
-      el.foodBar.style.width   = pet.food   + '%'; el.foodVal.textContent   = pet.food   + '%';
-      el.moodBar.style.width   = pet.mood   + '%'; el.moodVal.textContent   = pet.mood   + '%';
-      el.energyBar.style.width = pet.energy + '%'; el.energyVal.textContent = pet.energy + '%';
+    async function loadMe(){
+      try{
+        $('#refresh').disabled=true; $('#refresh').innerHTML='Обновление <span class="spinner"></span>';
+        const r = await fetch(`${API}/api/me`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getInitData()})});
+        if(!r.ok) throw new Error(await r.text());
+        me = await r.json();
+        $('#coins').textContent = me.coins ?? 0;
+        $('#hello').textContent = `Привет, ${me.first_name || 'игрок'}!`;
+      }catch(e){ console.error(e); toast('Не удалось получить профиль'); }
+      finally{ $('#refresh').disabled=false; $('#refresh').textContent='Обновить баланс'; }
     }
 
-    function act(type){
-      if(type==='feed') pet.food=clamp(pet.food+10);
-      if(type==='play') pet.mood=clamp(pet.mood+10);
-      if(type==='sleep') pet.energy=clamp(pet.energy+10);
-      save(); render();
+    async function buyCoins(packId){
+      const btn = ({1:$('#buy100'),2:$('#buy300'),3:$('#buy1000')})[packId];
+      const prev = btn.textContent;
+      try{
+        btn.disabled=true; btn.innerHTML=prev+' <span class="spinner"></span>';
+        const r = await fetch(`${API}/api/payments/create`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:getInitData(),packId})});
+        if(!r.ok) throw new Error(await r.text());
+        const data = await r.json();
+        if(data.instant){ await loadMe(); tg?.HapticFeedback?.notificationOccurred('success'); toast('Монеты начислены!'); return; }
+        const url = data.confirmation_url;
+        if(tg?.openLink) tg.openLink(url,{try_instant_view:false}); else window.open(url,'_blank');
+        toast('После оплаты вернись и обнови баланс');
+      }catch(e){ console.error(e); toast('Ошибка: '+(e?.message||'платёж')); }
+      finally{
+        btn.disabled=false;
+        if(packId===1) btn.textContent='+100 монет';
+        if(packId===2) btn.textContent='+300 монет';
+        if(packId===3) btn.textContent='+1000 монет';
+      }
     }
 
-    function resetPet(){
-      pet={food:70,mood:70,energy:70,last:Date.now()};
-      save(); render();
+    function share(){
+      const url='https://t.me/TamagochoBot';
+      if(navigator.share) navigator.share({title:'Мой питомец Tamagocho',text:'Заботимся о питомце вместе!',url}).catch(()=>{});
+      else if(tg?.openLink) tg.openLink(url); else window.open(url,'_blank');
     }
 
-    function donate(){
-      tg?.showPopup?.({title:"Спасибо!",message:"Здесь позже будет донат через Telegram Stars ✨"});
-    }
+    $('#buy100').addEventListener('click',()=>buyCoins(1));
+    $('#buy300').addEventListener('click',()=>buyCoins(2));
+    $('#buy1000').addEventListener('click',()=>buyCoins(3));
+    $('#refresh').addEventListener('click',loadMe);
+    $('#share').addEventListener('click',share);
 
-    render();
+    loadMe();
   </script>
 </body>
 </html>
-
