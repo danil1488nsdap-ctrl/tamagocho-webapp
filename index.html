@@ -4,34 +4,27 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Tamagocho</title>
-  <!-- Telegram Mini App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- import map — ключ к исправлению ошибки "Failed to resolve module specifier 'three'" -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.module.js"
+    }
+  }
+  </script>
+
   <style>
     :root{
-      --bg:#0f1620;
-      --panel:#151f2e;
-      --panel-2:#0e1a27;
-      --text:#e6eef8;
-      --muted:#9bb2d0;
-      --accent:#80d2ee;
-      --ok:#34d399;
-      --warn:#f59e0b;
-      --bad:#ef4444;
-      --btn:#1f2c44;
-      --btn-hover:#293a57;
-      --border:rgba(0,0,0,.2);
+      --bg:#0f1620;--panel:#151f2e;--panel-2:#0e1a27;--text:#e6eef8;--muted:#9bb2d0;
+      --accent:#80d2ee;--ok:#34d399;--warn:#f59e0b;--bad:#ef4444;--btn:#1f2c44;--btn-hover:#293a57;--border:rgba(0,0,0,.2)
     }
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,Segoe UI,Roboto,Arial;
-    }
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Arial}
     .wrap{max-width:980px;margin:0 auto;padding:16px}
     .card{background:var(--panel);border:1px solid var(--border);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    .row{display:flex;gap:12px}
-    .col{flex:1}
+    .row{display:flex;gap:12px}.col{flex:1}
     .header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)}
     .header h1{font-size:18px;margin:0}
     .badge{background:var(--panel-2);border:1px solid var(--border);padding:6px 10px;border-radius:12px;font-weight:600}
@@ -42,10 +35,7 @@
     .btn-row{display:flex;gap:8px;flex-wrap:wrap}
     .bar{height:10px;background:#0b1520;border-radius:999px;border:1px solid var(--border);overflow:hidden}
     .bar>span{display:block;height:100%}
-    .bar.ok>span{background:var(--ok)}
-    .bar.warn>span{background:var(--warn)}
-    .bar.bad>span{background:var(--bad)}
-    /* модалки */
+    .bar.ok>span{background:var(--ok)}.bar.warn>span{background:var(--warn)}.bar.bad>span{background:var(--bad)}
     .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:30}
     .modal.show{display:flex}
     .modal .box{background:var(--panel);border:1px solid var(--border);border-radius:16px;max-width:720px;width:94%;max-height:80vh;overflow:auto}
@@ -54,11 +44,8 @@
     .close{background:transparent;border:0;color:var(--muted);font-size:22px;cursor:pointer}
     .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;padding:12px}
     .item{background:var(--panel-2);border:1px solid var(--border);border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px}
-    .price{color:var(--accent);font-weight:700}
-    .muted{color:var(--muted)}
-    /* 3D контейнер */
+    .price{color:var(--accent);font-weight:700}.muted{color:var(--muted)}
     #hamster3d{width:100%;height:360px;background:#0b1420;border:1px solid var(--border);border-radius:16px;overflow:hidden}
-    /* мини-игра (реакция) */
     .game-area{height:260px;border:1px dashed var(--border);border-radius:16px;display:flex;align-items:center;justify-content:center;gap:12px;background:var(--panel-2)}
     .pill{padding:8px 10px;border-radius:999px;background:var(--panel);border:1px solid var(--border)}
     .footer-note{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
@@ -73,7 +60,6 @@
       </div>
 
       <div class="content">
-        <!-- ХЕДЕР С ДЕЙСТВИЯМИ -->
         <div class="btn-row" style="margin-bottom:10px">
           <button class="btn" id="btnShop">🛒 Магазин</button>
           <button class="btn" id="btnInv">🎒 Инвентарь</button>
@@ -83,10 +69,8 @@
           <button class="btn" id="btnAdmin" style="display:none">🛠️ Админ</button>
         </div>
 
-        <!-- 3D ХОМЯК -->
         <div id="hamster3d"></div>
 
-        <!-- ХАРАКТЕРИСТИКИ -->
         <div class="grid" style="margin-top:12px">
           <div class="col card" style="padding:12px">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
@@ -138,7 +122,6 @@
     </div>
   </div>
 
-  <!-- МОДАЛКИ -->
   <!-- Магазин -->
   <div class="modal" id="shopModal">
     <div class="box">
@@ -228,413 +211,253 @@
     </div>
   </div>
 
-  <!-- === ИГРОВАЯ ЛОГИКА (без модулей) ==================================== -->
+  <!-- Геймплей (как и прежде) -->
   <script>
-    // --- Telegram user / admin check ---
-    const tg = window.Telegram?.WebApp;
-    tg && tg.expand();
+    const tg = window.Telegram?.WebApp; tg && tg.expand();
     const userId = tg?.initDataUnsafe?.user?.id || null;
-    const OWNER_ID = 1907547038; // твой ID
+    const OWNER_ID = 1907547038;
 
-    // --- Хелперы ---
-    const $ = (sel, root=document) => root.querySelector(sel);
-    const $$ = (sel, root=document) => [...root.querySelectorAll(sel)];
-
-    // --- Состояние ---
-    const state = JSON.parse(localStorage.getItem('tmg_state_v1') || 'null') || {
-      seeds: 250,
-      stats: { hunger: 100, energy: 100, mood: 100, hygiene: 100 },
-      inv: [], // {id, title, type, value, premium}
-      ownedCosmetics: [], // список id аксессуаров
-      bestScore: 0,
-      lb: [], // локальный лидерборд
-      lastTick: Date.now()
+    const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+    const state = JSON.parse(localStorage.getItem('tmg_state_v1')||'null') || {
+      seeds:250, stats:{hunger:100,energy:100,mood:100,hygiene:100},
+      inv:[], ownedCosmetics:[], bestScore:0, lb:[], lastTick:Date.now()
     };
-
     const SHOP = [
-      { id:'snack',  title:'Печенька', type:'food', value:10, price:5 },
-      { id:'meal',   title:'Курица',   type:'food', value:100, price:25 },
-      { id:'nap',    title:'Кофе-брейк', type:'rest', value:10, price:5 },
-      { id:'sleep',  title:'Глубокий сон', type:'rest', value:100, price:25 },
-      { id:'toy',    title:'Игрушка', type:'fun', value:10, price:5 },
-      { id:'party',  title:'Вечеринка', type:'fun', value:100, price:25 },
-      { id:'soap',   title:'Мыло', type:'clean', value:10, price:5 },
-      { id:'bath',   title:'SPA',  type:'clean', value:100, price:25 },
-      // косметика (премиум-контент — просто аксессуары)
-      { id:'hat_red',  title:'Красная шапка', type:'cosmetic', value:0, price:120, premium:true },
-      { id:'glasses',  title:'Очки', type:'cosmetic', value:0, price:120, premium:true }
+      {id:'snack',title:'Печенька',type:'food',value:10,price:5},
+      {id:'meal',title:'Курица',type:'food',value:100,price:25},
+      {id:'nap',title:'Кофе-брейк',type:'rest',value:10,price:5},
+      {id:'sleep',title:'Глубокий сон',type:'rest',value:100,price:25},
+      {id:'toy',title:'Игрушка',type:'fun',value:10,price:5},
+      {id:'party',title:'Вечеринка',type:'fun',value:100,price:25},
+      {id:'soap',title:'Мыло',type:'clean',value:10,price:5},
+      {id:'bath',title:'SPA',type:'clean',value:100,price:25},
+      {id:'hat_red',title:'Красная шапка',type:'cosmetic',value:0,price:120,premium:true},
+      {id:'glasses',title:'Очки',type:'cosmetic',value:0,price:120,premium:true},
     ];
+    const save=()=>localStorage.setItem('tmg_state_v1',JSON.stringify(state));
+    const clamp=v=>Math.max(0,Math.min(100,v));
 
-    function save(){ localStorage.setItem('tmg_state_v1', JSON.stringify(state)); }
-    function clamp(v){ return Math.max(0, Math.min(100, v)); }
-
-    // Тики — постепенное падение характеристик
     function tick(){
-      const now = Date.now();
-      const dtMin = Math.max(0, Math.floor((now - state.lastTick)/60000)); // минуты
-      if(dtMin>0){
-        state.lastTick = now;
-        // убывание
-        state.stats.hunger  = clamp(state.stats.hunger  - dtMin*2);
-        state.stats.energy  = clamp(state.stats.energy  - dtMin*1.5);
-        state.stats.mood    = clamp(state.stats.mood    - dtMin*1.5);
-        state.stats.hygiene = clamp(state.stats.hygiene - dtMin*1.2);
-        save();
-        renderStats();
+      const now=Date.now(), dtMin=Math.max(0,Math.floor((now-state.lastTick)/60000));
+      if(dtMin>0){ state.lastTick=now;
+        state.stats.hunger =clamp(state.stats.hunger -dtMin*2);
+        state.stats.energy =clamp(state.stats.energy -dtMin*1.5);
+        state.stats.mood   =clamp(state.stats.mood   -dtMin*1.5);
+        state.stats.hygiene=clamp(state.stats.hygiene-dtMin*1.2);
+        save(); renderStats();
       }
     }
-    setInterval(tick, 15000); // каждые 15 сек проверяем
+    setInterval(tick,15000);
 
-    // --- Рендеры UI ---
-    function barClass(val){
-      if(val>=60) return 'bar ok';
-      if(val>=30) return 'bar warn';
-      return 'bar bad';
-    }
+    const barClass=v=>v>=60?'bar ok':v>=30?'bar warn':'bar bad';
     function renderStats(){
-      $('#seeds').textContent = state.seeds;
-
-      const S = state.stats;
-      $('#hungerText').textContent = S.hunger+'%';
-      $('#energyText').textContent = S.energy+'%';
-      $('#moodText').textContent   = S.mood+'%';
-      $('#hygieneText').textContent= S.hygiene+'%';
-
-      const hungerBar = $('#hungerBar').parentElement; hungerBar.className = barClass(S.hunger);
-      const energyBar = $('#energyBar').parentElement; energyBar.className = barClass(S.energy);
-      const moodBar   = $('#moodBar').parentElement;   moodBar.className   = barClass(S.mood);
-      const hygBar    = $('#hygieneBar').parentElement;hygBar.className    = barClass(S.hygiene);
-
-      $('#hungerBar').style.width = S.hunger+'%';
-      $('#energyBar').style.width = S.energy+'%';
-      $('#moodBar').style.width   = S.mood+'%';
-      $('#hygieneBar').style.width= S.hygiene+'%';
+      $('#seeds').textContent=state.seeds;
+      const S=state.stats;
+      $('#hungerText').textContent=S.hunger+'%';
+      $('#energyText').textContent=S.energy+'%';
+      $('#moodText').textContent=S.mood+'%';
+      $('#hygieneText').textContent=S.hygiene+'%';
+      const hb=$('#hungerBar').parentElement;hb.className=barClass(S.hunger);
+      const eb=$('#energyBar').parentElement;eb.className=barClass(S.energy);
+      const mb=$('#moodBar').parentElement;mb.className=barClass(S.mood);
+      const cb=$('#hygieneBar').parentElement;cb.className=barClass(S.hygiene);
+      $('#hungerBar').style.width=S.hunger+'%';
+      $('#energyBar').style.width=S.energy+'%';
+      $('#moodBar').style.width=S.mood+'%';
+      $('#hygieneBar').style.width=S.hygiene+'%';
     }
 
     function renderShop(){
-      const root = $('#shopList'); root.innerHTML = '';
+      const root=$('#shopList'); root.innerHTML='';
       SHOP.forEach(p=>{
-        const div = document.createElement('div');
-        div.className='item';
-        div.innerHTML = `
-          <div style="font-weight:700">${p.title}</div>
+        const d=document.createElement('div'); d.className='item';
+        d.innerHTML=`<div style="font-weight:700">${p.title}</div>
           <div class="muted">${p.type==='cosmetic'?'Аксессуар':'Предмет'} ${p.premium?'(премиум)':''}</div>
           <div class="price">💠 ${p.price}</div>
-          <button class="btn" data-buy="${p.id}">Купить</button>
-        `;
-        root.appendChild(div);
+          <button class="btn" data-buy="${p.id}">Купить</button>`;
+        root.appendChild(d);
       });
     }
-
     function renderInv(){
-      const root = $('#invList'); root.innerHTML='';
+      const root=$('#invList'); root.innerHTML='';
       if(!state.inv.length && !state.ownedCosmetics.length){
-        root.innerHTML = `<div class="item"><div class="muted">Пусто. Купи что-нибудь в магазине.</div></div>`;
-        return;
+        root.innerHTML=`<div class="item"><div class="muted">Пусто. Купи что-нибудь в магазине.</div></div>`; return;
       }
       state.inv.forEach((it,idx)=>{
-        const div=document.createElement('div');
-        div.className='item';
-        div.innerHTML=`
-          <div><b>${it.title}</b></div>
+        const d=document.createElement('div'); d.className='item';
+        d.innerHTML=`<div><b>${it.title}</b></div>
           <div class="muted">Тип: ${it.type}, +${it.value}</div>
           <div class="btn-row">
             <button class="btn" data-use="${idx}">Использовать</button>
             <button class="btn" data-drop="${idx}">Удалить</button>
-          </div>
-        `;
-        root.appendChild(div);
+          </div>`;
+        root.appendChild(d);
       });
-      // Косметика (просто отображаем наличие)
       state.ownedCosmetics.forEach(id=>{
-        const meta = SHOP.find(s=>s.id===id);
-        const div=document.createElement('div');
-        div.className='item';
-        div.innerHTML=`
-          <div><b>${meta?.title||id}</b></div>
+        const meta=SHOP.find(s=>s.id===id);
+        const d=document.createElement('div'); d.className='item';
+        d.innerHTML=`<div><b>${meta?.title||id}</b></div>
           <div class="muted">Аксессуар</div>
-          <div class="btn-row"><button class="btn" disabled>Надето</button></div>
-        `;
-        root.appendChild(div);
+          <div class="btn-row"><button class="btn" disabled>Надето</button></div>`;
+        root.appendChild(d);
       });
     }
-
     function renderLB(){
-      // Запишем текущий bestScore
-      $('#lbList').innerHTML = (state.lb||[]).sort((a,b)=>b.score-a.score)
-        .slice(0,20)
-        .map((r,i)=>`<li>${i+1}. ${r.name} — <b>${r.score}</b></li>`).join('') || '<div class="muted">Пока пусто</div>';
+      $('#lbList').innerHTML=(state.lb||[]).sort((a,b)=>b.score-a.score).slice(0,20).map((r,i)=>`<li>${i+1}. ${r.name} — <b>${r.score}</b></li>`).join('')||'<div class="muted">Пока пусто</div>'
     }
 
-    // --- Действия над статами ---
     function applyItem(item){
-      const S = state.stats;
-      if(item.type==='food')   S.hunger  = clamp(S.hunger + item.value);
-      if(item.type==='rest')   S.energy  = clamp(S.energy + item.value);
-      if(item.type==='fun')    S.mood    = clamp(S.mood   + item.value);
-      if(item.type==='clean')  S.hygiene = clamp(S.hygiene+ item.value);
+      const S=state.stats;
+      if(item.type==='food')  S.hunger =clamp(S.hunger +item.value);
+      if(item.type==='rest')  S.energy =clamp(S.energy +item.value);
+      if(item.type==='fun')   S.mood   =clamp(S.mood   +item.value);
+      if(item.type==='clean') S.hygiene=clamp(S.hygiene+item.value);
       save(); renderStats();
     }
 
-    // --- Открытие/закрытие модалок ---
-    function openModal(id){ $('#'+id).classList.add('show'); }
-    function closeModal(id){ $('#'+id).classList.remove('show'); }
-    $$('#btnShop, #btnInv, #btnQuests, #btnMiniGame, #btnLeaderboard, #btnAdmin').forEach(()=>{});
-    $('#btnShop').onclick = ()=>{ renderShop(); openModal('shopModal'); }
-    $('#btnInv').onclick  = ()=>{ renderInv();  openModal('invModal'); }
-    $('#btnQuests').onclick=()=>{ renderQuests(); openModal('questsModal'); }
-    $('#btnMiniGame').onclick=()=>{ resetGame(); openModal('gameModal'); }
-    $('#btnLeaderboard').onclick=()=>{ renderLB(); openModal('lbModal'); }
-    $('#btnAdmin').onclick=()=>{ openModal('adminModal'); }
-    $$('.close').forEach(btn=> btn.onclick = ()=> closeModal(btn.dataset.close));
+    const openModal=id=>$('#'+id).classList.add('show');
+    const closeModal=id=>$('#'+id).classList.remove('show');
+    $('#btnShop').onclick =()=>{renderShop();openModal('shopModal')}
+    $('#btnInv').onclick  =()=>{renderInv();openModal('invModal')}
+    $('#btnQuests').onclick=()=>{renderQuests();openModal('questsModal')}
+    $('#btnMiniGame').onclick=()=>{resetGame();openModal('gameModal')}
+    $('#btnLeaderboard').onclick=()=>{renderLB();openModal('lbModal')}
+    $('#btnAdmin').onclick=()=>openModal('adminModal')
+    $$('.close').forEach(b=>b.onclick=()=>closeModal(b.dataset.close))
 
-    // --- Кнопки характеристик (быстрые) ---
-    $('#feedSmall').onclick = ()=>{ if(state.seeds>=2){ state.seeds-=2; applyItem({type:'food', value:10, title:'Перекус'}); save(); renderStats(); } };
-    $('#feedFull').onclick  = ()=>{ if(state.seeds>=15){ state.seeds-=15; applyItem({type:'food', value:100, title:'Обед'}); save(); renderStats(); } };
-    $('#sleepShort').onclick= ()=>{ applyItem({type:'rest', value:10, title:'Кофе-брейк'}); save(); renderStats(); };
-    $('#sleepFull').onclick = ()=>{ applyItem({type:'rest', value:100, title:'Сон'}); save(); renderStats(); };
-    $('#playSmall').onclick = ()=>{ if(state.seeds>=2){ state.seeds-=2; applyItem({type:'fun', value:10, title:'Игра'}); save(); renderStats(); } };
-    $('#playFull').onclick  = ()=>{ if(state.seeds>=15){ state.seeds-=15; applyItem({type:'fun', value:100, title:'Праздник'}); save(); renderStats(); } };
-    $('#washSmall').onclick = ()=>{ if(state.seeds>=1){ state.seeds-=1; applyItem({type:'clean', value:10, title:'Умыться'}); save(); renderStats(); } };
-    $('#washFull').onclick  = ()=>{ if(state.seeds>=10){ state.seeds-=10; applyItem({type:'clean', value:100, title:'SPA'}); save(); renderStats(); } };
+    $('#feedSmall').onclick=()=>{if(state.seeds>=2){state.seeds-=2;applyItem({type:'food',value:10,title:'Перекус'});save();renderStats();window.__questHook?.('feed')}}
+    $('#feedFull').onclick =()=>{if(state.seeds>=15){state.seeds-=15;applyItem({type:'food',value:100,title:'Обед'});save();renderStats();window.__questHook?.('feed')}}
+    $('#sleepShort').onclick=()=>{applyItem({type:'rest',value:10,title:'Кофе-брейк'});save();renderStats()}
+    $('#sleepFull').onclick =()=>{applyItem({type:'rest',value:100,title:'Сон'});save();renderStats()}
+    $('#playSmall').onclick =()=>{if(state.seeds>=2){state.seeds-=2;applyItem({type:'fun',value:10,title:'Игра'});save();renderStats();window.__questHook?.('play')}}
+    $('#playFull').onclick  =()=>{if(state.seeds>=15){state.seeds-=15;applyItem({type:'fun',value:100,title:'Праздник'});save();renderStats();window.__questHook?.('play')}}
+    $('#washSmall').onclick =()=>{if(state.seeds>=1){state.seeds-=1;applyItem({type:'clean',value:10,title:'Умыться'});save();renderStats();window.__questHook?.('wash')}}
+    $('#washFull').onclick  =()=>{if(state.seeds>=10){state.seeds-=10;applyItem({type:'clean',value:100,title:'SPA'});save();renderStats();window.__questHook?.('wash')}}
 
-    // --- Покупки в магазине ---
-    $('#shopList').addEventListener('click', (e)=>{
-      const id = e.target.dataset.buy;
-      if(!id) return;
-      const product = SHOP.find(p=>p.id===id);
-      if(!product) return;
-      if(state.seeds < product.price){ tg?.showPopup?.({title:'Недостаточно Seeds',message:'Заработай ещё в квестах или мини-играх.'}); return; }
-
-      state.seeds -= product.price;
-      if(product.type==='cosmetic'){
-        if(!state.ownedCosmetics.includes(product.id)) state.ownedCosmetics.push(product.id);
-      }else{
-        state.inv.push({id:product.id, title:product.title, type:product.type, value:product.value});
-      }
-      save(); renderStats(); renderInv();
-      tg?.HapticFeedback?.notificationOccurred('success');
+    $('#shopList').addEventListener('click',e=>{
+      const id=e.target.dataset.buy; if(!id) return;
+      const p=SHOP.find(x=>x.id===id); if(!p) return;
+      if(state.seeds<p.price){ tg?.showPopup?.({title:'Недостаточно Seeds',message:'Заработай ещё в квестах или мини-играх.'}); return; }
+      state.seeds-=p.price;
+      if(p.type==='cosmetic'){ if(!state.ownedCosmetics.includes(p.id)) state.ownedCosmetics.push(p.id); }
+      else{ state.inv.push({id:p.id,title:p.title,type:p.type,value:p.value}); }
+      save(); renderStats(); renderInv(); tg?.HapticFeedback?.notificationOccurred('success');
     });
 
-    // --- Инвентарь: use/drop ---
-    $('#invList').addEventListener('click',(e)=>{
-      const iUse  = e.target.dataset.use;
-      const iDrop = e.target.dataset.drop;
-      if(iUse!==undefined){
-        const idx = +iUse;
-        const item = state.inv[idx];
-        if(item){ applyItem(item); state.inv.splice(idx,1); save(); renderInv(); }
-      }
-      if(iDrop!==undefined){
-        const idx = +iDrop;
-        state.inv.splice(idx,1); save(); renderInv();
-      }
+    $('#invList').addEventListener('click',e=>{
+      const u=e.target.dataset.use, d=e.target.dataset.drop;
+      if(u!==undefined){ const idx=+u, it=state.inv[idx]; if(it){applyItem(it); state.inv.splice(idx,1); save(); renderInv();} }
+      if(d!==undefined){ const idx=+d; state.inv.splice(idx,1); save(); renderInv(); }
     });
 
-    // --- Квесты (3 шт) ---
     function renderQuests(){
-      const body = $('#questsBody');
-      const today = new Date().toDateString();
-      const key = 'tmg_quests_'+today;
-      let q = JSON.parse(localStorage.getItem(key) || 'null');
-      if(!q){
-        q = [
-          {id:'feed3',  title:'Покорми питомца 3 раза', progress:0, need:3, reward:15},
-          {id:'play2',  title:'Поиграй 2 раза',        progress:0, need:2, reward:10},
-          {id:'wash1',  title:'Помой 1 раз',          progress:0, need:1, reward:7},
-        ];
-        localStorage.setItem(key, JSON.stringify(q));
-      }
-      body.innerHTML = '';
-      q.forEach((it,idx)=>{
-        const done = it.progress>=it.need;
-        const row = document.createElement('div');
-        row.className='item';
-        row.innerHTML = `
-          <div><b>${it.title}</b></div>
-          <div class="muted">Прогресс: ${it.progress}/${it.need}</div>
-          <div class="btn-row">
-            <button class="btn" data-q="${idx}" ${done?'disabled':''}>Забрать награду (+${it.reward} Seeds)</button>
-          </div>
-        `;
+      const body=$('#questsBody'), today=new Date().toDateString(), key='tmg_quests_'+today;
+      let q=JSON.parse(localStorage.getItem(key)||'null');
+      if(!q){ q=[
+          {id:'feed3',title:'Покорми питомца 3 раза',progress:0,need:3,reward:15},
+          {id:'play2',title:'Поиграй 2 раза',progress:0,need:2,reward:10},
+          {id:'wash1',title:'Помой 1 раз',progress:0,need:1,reward:7},
+        ]; localStorage.setItem(key,JSON.stringify(q)); }
+      body.innerHTML=''; q.forEach((it,idx)=>{
+        const done=it.progress>=it.need;
+        const row=document.createElement('div'); row.className='item';
+        row.innerHTML=`<div><b>${it.title}</b></div>
+        <div class="muted">Прогресс: ${it.progress}/${it.need}</div>
+        <div class="btn-row"><button class="btn" data-q="${idx}" ${done?'disabled':''}>Забрать +${it.reward} Seeds</button></div>`;
         body.appendChild(row);
       });
-
-      body.onclick = (e)=>{
-        const id = e.target.dataset.q;
-        if(id===undefined) return;
-        const i = +id;
-        if(q[i].progress>=q[i].need){ // забираем
-          state.seeds += q[i].reward;
-          q[i].progress = -999; // помечаем как выдано
-          localStorage.setItem(key, JSON.stringify(q));
-          save(); renderStats(); renderQuests();
-          tg?.HapticFeedback?.notificationOccurred('success');
+      body.onclick=e=>{
+        const id=e.target.dataset.q; if(id===undefined) return;
+        const i=+id; if(q[i].progress>=q[i].need){
+          state.seeds+=q[i].reward; q[i].progress=-999; localStorage.setItem(key,JSON.stringify(q));
+          save(); renderStats(); renderQuests(); tg?.HapticFeedback?.notificationOccurred('success');
         }
       };
-
-      // «крючки» для прогресса квестов
-      window.__questHook = (act)=>{
-        if(act==='feed'){ if(q[0].progress>=0 && q[0].progress<q[0].need){ q[0].progress++; } }
-        if(act==='play'){ if(q[1].progress>=0 && q[1].progress<q[1].need){ q[1].progress++; } }
-        if(act==='wash'){ if(q[2].progress>=0 && q[2].progress<q[2].need){ q[2].progress++; } }
-        localStorage.setItem(key, JSON.stringify(q));
+      window.__questHook=(act)=>{
+        if(act==='feed'){ if(q[0].progress>=0 && q[0].progress<q[0].need) q[0].progress++; }
+        if(act==='play'){ if(q[1].progress>=0 && q[1].progress<q[1].need) q[1].progress++; }
+        if(act==='wash'){ if(q[2].progress>=0 && q[2].progress<q[2].need) q[2].progress++; }
+        localStorage.setItem(key,JSON.stringify(q));
       };
     }
 
-    // привяжем квесты к быстрым действиям
-    $('#feedSmall').addEventListener('click',()=>window.__questHook?.('feed'));
-    $('#feedFull').addEventListener('click',()=>window.__questHook?.('feed'));
-    $('#playSmall').addEventListener('click',()=>window.__questHook?.('play'));
-    $('#playFull').addEventListener('click',()=>window.__questHook?.('play'));
-    $('#washSmall').addEventListener('click',()=>window.__questHook?.('wash'));
-    $('#washFull').addEventListener('click',()=>window.__questHook?.('wash'));
-
-    // --- Мини-игра «Реакция» ---
-    let gTimer=null, gSpawns=null, gScore=0;
-    function resetGame(){
-      gScore=0; $('#gameScore').textContent='0';
-      $('#gameBest').textContent = state.bestScore||0;
-      $('#reactionArea').innerHTML = `<div class="pill">Нажми «Старт», затем кликай по целям</div>`;
-    }
+    let gTimer=null,gSpawns=null,gScore=0;
+    function resetGame(){ gScore=0; $('#gameScore').textContent='0'; $('#gameBest').textContent=state.bestScore||0; $('#reactionArea').innerHTML='<div class="pill">Нажми «Старт», затем кликай по целям</div>'; }
     function spawnTarget(){
-      const area = $('#reactionArea');
-      const t = document.createElement('button');
-      t.className='btn';
-      t.style.position='absolute';
-      const r = area.getBoundingClientRect();
-      const x = Math.random()*(r.width-80)+10, y=Math.random()*(r.height-60)+10;
-      t.style.left = x+'px'; t.style.top = y+'px';
-      t.textContent = '🎯';
-      t.onclick = ()=>{
-        gScore++; $('#gameScore').textContent = gScore;
-        t.remove();
-      };
-      area.appendChild(t);
-      setTimeout(()=> t.remove(), 1000+Math.random()*1200);
+      const area=$('#reactionArea'), t=document.createElement('button'); t.className='btn'; t.style.position='absolute';
+      const r=area.getBoundingClientRect(); const x=Math.random()*(r.width-80)+10, y=Math.random()*(r.height-60)+10;
+      t.style.left=x+'px'; t.style.top=y+'px'; t.textContent='🎯'; t.onclick=()=>{ gScore++; $('#gameScore').textContent=gScore; t.remove(); };
+      area.appendChild(t); setTimeout(()=>t.remove(),1000+Math.random()*1200);
     }
-    $('#gameStart').onclick = ()=>{
-      resetGame();
-      const area = $('#reactionArea');
-      area.style.position='relative';
-      const end = Date.now()+30000;
-      gSpawns = setInterval(spawnTarget, 450);
-      gTimer  = setInterval(()=>{
-        if(Date.now()>end){
-          clearInterval(gSpawns); clearInterval(gTimer);
-          // награда: за каждые 5 очков — +3 Seeds, и +5 к настроению/энергии (однократно)
-          const bonus = Math.floor(gScore/5)*3;
-          state.seeds += bonus;
-          state.stats.mood = clamp(state.stats.mood+5);
-          state.stats.energy = clamp(state.stats.energy+5);
-          if(gScore > (state.bestScore||0)) state.bestScore = gScore;
-
-          // локальный лидерборд
-          const name = tg?.initDataUnsafe?.user?.first_name || 'Игрок';
-          state.lb.push({name, score:gScore, ts:Date.now()});
-
-          save(); renderStats();
-          tg?.showPopup?.({title:'Игра окончена',message:`Счёт: ${gScore}\nНаграда: +${bonus} Seeds`});
-        }
-      }, 250);
+    $('#gameStart').onclick=()=>{
+      resetGame(); const area=$('#reactionArea'); area.style.position='relative';
+      const end=Date.now()+30000; gSpawns=setInterval(spawnTarget,450);
+      gTimer=setInterval(()=>{ if(Date.now()>end){ clearInterval(gSpawns); clearInterval(gTimer);
+        const bonus=Math.floor(gScore/5)*3; state.seeds+=bonus; state.stats.mood=clamp(state.stats.mood+5); state.stats.energy=clamp(state.stats.energy+5);
+        if(gScore>(state.bestScore||0)) state.bestScore=gScore;
+        const name=tg?.initDataUnsafe?.user?.first_name||'Игрок'; state.lb.push({name,score:gScore,ts:Date.now()});
+        save(); renderStats(); tg?.showPopup?.({title:'Игра окончена',message:`Счёт: ${gScore}\nНаграда: +${bonus} Seeds`}); } },250);
     };
-    $('#gameStop').onclick = ()=>{
-      clearInterval(gSpawns); clearInterval(gTimer); resetGame();
-    };
+    $('#gameStop').onclick=()=>{ clearInterval(gSpawns); clearInterval(gTimer); resetGame(); };
 
-    // --- Админ (только для владельца) ---
-    if(userId === OWNER_ID){ $('#btnAdmin').style.display='inline-block'; }
-    $('#adminModal').addEventListener('click',(e)=>{
-      const k = e.target.dataset.admin;
-      if(!k) return;
-      if(userId !== OWNER_ID){ tg?.showPopup?.({title:'Нет доступа',message:'Эта панель только для владельца.'}); return; }
-      if(k==='seeds50')  state.seeds+=50;
+    if(userId===OWNER_ID) $('#btnAdmin').style.display='inline-block';
+    $('#adminModal').addEventListener('click',e=>{
+      const k=e.target.dataset.admin; if(!k) return;
+      if(userId!==OWNER_ID){ tg?.showPopup?.({title:'Нет доступа',message:'Эта панель только для владельца.'}); return; }
+      if(k==='seeds50') state.seeds+=50;
       if(k==='seeds500') state.seeds+=500;
-      if(k==='fullAll'){ Object.keys(state.stats).forEach(k=>state.stats[k]=100); }
+      if(k==='fullAll') Object.keys(state.stats).forEach(x=>state.stats[x]=100);
       if(k==='giveCosmetic'){ if(!state.ownedCosmetics.includes('hat_red')) state.ownedCosmetics.push('hat_red'); }
       if(k==='clear'){ localStorage.removeItem('tmg_state_v1'); location.reload(); return; }
-      save(); renderStats(); renderInv();
-      tg?.HapticFeedback?.notificationOccurred('success');
+      save(); renderStats(); renderInv(); tg?.HapticFeedback?.notificationOccurred('success');
     });
 
-    // --- Инициализация ---
-    renderStats();
-    tick(); // мгновенный тик при входе
+    renderStats(); tick();
   </script>
 
-  <!-- === THREE.JS / 3D-МОДЕЛЬ (через модули) ============================ -->
+  <!-- THREE.js (через import map) -->
   <script type="module">
-    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.module.js';
+    import * as THREE from 'three';
     import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.150.0/examples/jsm/controls/OrbitControls.js';
     import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.150.0/examples/jsm/loaders/GLTFLoader.js';
 
-    const container = document.getElementById('hamster3d');
+    const container=document.getElementById('hamster3d');
+    const scene=new THREE.Scene();
+    const camera=new THREE.PerspectiveCamera(70, container.clientWidth/container.clientHeight, 0.1, 100);
+    camera.position.set(0,1.2,2.6);
 
-    const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(70, container.clientWidth/container.clientHeight, 0.1, 100);
-    camera.position.set(0, 1.2, 2.6);
-
-    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    const renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+    renderer.setSize(container.clientWidth,container.clientHeight);
+    renderer.outputColorSpace=THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
 
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x223344, 2.0);
-    const dir  = new THREE.DirectionalLight(0xffffff, 1.5);
-    dir.position.set(2,3,4);
-    scene.add(hemi, dir);
+    const hemi=new THREE.HemisphereLight(0xffffff,0x223344,2.0);
+    const dir =new THREE.DirectionalLight(0xffffff,1.5); dir.position.set(2,3,4);
+    scene.add(hemi,dir);
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
+    const controls=new OrbitControls(camera,renderer.domElement);
+    controls.enableDamping=true;
 
-    // Площадка
-    const plane = new THREE.Mesh(
-      new THREE.CircleGeometry(2.5, 48),
-      new THREE.MeshStandardMaterial({ color: 0x0d1826, roughness:.9, metalness:0 })
-    );
-    plane.rotation.x = -Math.PI/2;
-    plane.position.y = -1.02;
-    scene.add(plane);
+    const plane=new THREE.Mesh(new THREE.CircleGeometry(2.5,48), new THREE.MeshStandardMaterial({color:0x0d1826,roughness:.9,metalness:0}));
+    plane.rotation.x=-Math.PI/2; plane.position.y=-1.02; scene.add(plane);
 
-    // Загрузка модели
-    const loader = new GLTFLoader();
+    const loader=new GLTFLoader();
     loader.load('./hamster.glb', (gltf)=>{
-      const root = gltf.scene;
-      root.position.set(0,-1,0);
-      root.scale.set(1,1,1);
-      scene.add(root);
-      // лёгкая анимация вращения
-      const clock = new THREE.Clock();
-      (function spin(){
-        const t = clock.getElapsedTime();
-        root.rotation.y = Math.sin(t*0.5)*0.3;
-        requestAnimationFrame(spin);
-      })();
+      const root=gltf.scene; root.position.set(0,-1,0); root.scale.set(1,1,1); scene.add(root);
+      const clock=new THREE.Clock();
+      (function spin(){ const t=clock.getElapsedTime(); root.rotation.y=Math.sin(t*0.5)*0.3; requestAnimationFrame(spin); })();
     }, undefined, (err)=>{
       console.error('Ошибка загрузки hamster.glb', err);
-      // Фоллбек: простая сферка, если модель не нашлась
-      const fallback = new THREE.Mesh(
-        new THREE.SphereGeometry(0.8, 32, 32),
-        new THREE.MeshStandardMaterial({ color: 0xffc78f, roughness:.6 })
-      );
-      fallback.position.set(0,-0.2,0);
-      scene.add(fallback);
+      const fb=new THREE.Mesh(new THREE.SphereGeometry(0.8,32,32), new THREE.MeshStandardMaterial({color:0xffc78f,roughness:.6}));
+      fb.position.set(0,-0.2,0); scene.add(fb);
     });
 
-    // ресайз
     new ResizeObserver(()=>{
-      const w = container.clientWidth || 300;
-      const h = container.clientHeight || 200;
-      camera.aspect = w/h; camera.updateProjectionMatrix();
-      renderer.setSize(w,h);
+      const w=container.clientWidth||300, h=container.clientHeight||200;
+      camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h);
     }).observe(container);
 
-    function animate(){
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animate();
+    (function animate(){ requestAnimationFrame(animate); controls.update(); renderer.render(scene,camera); })();
   </script>
 </body>
 </html>
