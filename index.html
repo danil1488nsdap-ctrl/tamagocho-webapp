@@ -1,386 +1,249 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tamagocho</title>
-
-  <!-- Telegram Mini App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <style>
-    :root{
-      --bg:#0f1620;--card:#151e2f;--text:#e6eef8;--muted:#9bb2d0;
-      --accent:#80de6b;--ok:#34d399;--warn:#f59e0b;--danger:#ef4444;
-      --panel:#101a2a;--border:rgba(255,255,255,.06)
+  <!-- Three.js -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/examples/jsm/controls/OrbitControls.js": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js",
+      "three/examples/jsm/loaders/GLTFLoader.js": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:420px;margin:0 auto;padding:18px 16px 32px}
-    .card{background:var(--card);border-radius:18px;padding:14px 14px 4px;box-shadow:0 10px 28px rgba(0,0,0,.35)}
-    .row{display:flex;gap:10px;flex-wrap:wrap}
-    .header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
-    .avatar{width:72px;height:72px;border-radius:16px;object-fit:cover;background:#000}
-    .title{font-size:18px;font-weight:700}
-    .muted{color:var(--muted);font-size:13px}
-    .panel{background:var(--panel);border-radius:14px;padding:12px;border:1px solid var(--border)}
-    .btn{display:flex;align-items:center;justify-content:center;gap:8px;height:44px;padding:0 14px;border-radius:12px;background:#0f1a2b;border:1px solid var(--border);color:var(--text);cursor:pointer;user-select:none;transition:.2s}
-    .btn:hover{filter:brightness(1.1)}
-    .btn.primary{background:#183049}
-    .btn.success{background:#0d3528;border-color:#0f5132}
-    .btn.warn{background:#3a2b07;border-color:#7c5c0a}
-    .btn.ghost{background:transparent}
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-    .bar{height:8px;background:#0a1220;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
-    .fill{height:100%;background:linear-gradient(90deg,#1dd881,#0fb56b)}
-    .fill.yellow{background:linear-gradient(90deg,#ffd54a,#ffb300)}
-    .fill.blue{background:linear-gradient(90deg,#63b3ff,#3182ce)}
-    .kpi{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-    .kpi .name{font-size:13px;color:var(--muted)}
-    .kpi .val{font-weight:700}
-    .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
-    .toolbar .btn{height:36px;font-size:13px}
-    .menu{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 6px}
-    .tile{background:#0f1a2b;border:1px solid var(--border);border-radius:14px;height:60px;display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;cursor:pointer}
-    .tile:hover{filter:brightness(1.1)}
-    .pad{padding:12px}
-    .modal{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45)}
-    .modal.open{display:flex}
-    .sheet{width:100%;max-width:420px;background:var(--card);border-radius:18px 18px 0 0;border:1px solid var(--border)}
-    .sheet .head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
-    .list{display:flex;flex-direction:column;padding:8px 12px;max-height:60vh;overflow:auto;gap:10px}
-    .item{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px}
-    .item .meta{display:flex;flex-direction:column;gap:4px}
-    .badge{font-size:11px;padding:2px 6px;border-radius:999px;background:#2e2538;color:#d8b4fe;border:1px solid rgba(255,255,255,.08);display:inline-flex;gap:4px;align-items:center}
-    .note{font-size:12px;color:var(--muted);padding:10px 14px;border-top:1px dashed var(--border)}
-    canvas{display:block;width:100%;height:260px;background:#0c1524;border-radius:14px;border:1px solid var(--border)}
-    .viewer{padding:8px 8px 0}
+  }
+  </script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: #0d1117;
+      color: #fff;
+    }
+    .wrap {
+      max-width: 420px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .card {
+      background: #161b22;
+      border-radius: 16px;
+      padding: 12px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(2,1fr);
+      gap: 12px;
+    }
+    .btn {
+      background: #21262d;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #30363d; }
+
+    /* 3D блок */
+    .pet3d {
+      width: 100%;
+      height: 360px;
+      border-radius: 16px;
+      overflow: hidden;
+      background: radial-gradient(120% 120% at 50% 90%, #2c4a72 0%, #141e2b 70%);
+      margin-bottom: 16px;
+    }
+    #pet3d canvas { display:block; width:100%!important; height:100%!important; }
+
+    /* Статусы */
+    .bars {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .bar {
+      background: #21262d;
+      border-radius: 8px;
+      padding: 6px;
+      font-size: 14px;
+    }
+    .bar span { display:block; margin-bottom: 4px; }
+    .progress {
+      height: 6px;
+      border-radius: 4px;
+      background: #444;
+      overflow:hidden;
+    }
+    .progress div {
+      height: 100%;
+      background: #58a6ff;
+      width: 50%;
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <div class="header">
-        <img class="avatar" src="https://i.imgur.com/3r3VqQ8.jpeg" alt="pet" />
-        <div>
-          <div class="title">Tamagocho</div>
-          <div class="muted" id="seedsLabel">Seeds: 0</div>
+        <div>🐹 Tamagocho</div>
+        <div>Seeds: <span id="seeds">0</span></div>
+      </div>
+
+      <!-- 3D-хомяк -->
+      <div id="pet3d" class="pet3d"></div>
+
+      <!-- Кнопки -->
+      <div class="buttons">
+        <div class="btn">🛒 Магазин</div>
+        <div class="btn">🎒 Инвентарь</div>
+        <div class="btn">📖 Квесты</div>
+        <div class="btn">🎮 Мини-игра</div>
+        <div class="btn">🏆 Лидерборд</div>
+        <div class="btn">⚙️ Админ</div>
+      </div>
+
+      <!-- Статусы -->
+      <div class="bars">
+        <div class="bar">
+          <span>❤️ Сытость</span>
+          <div class="progress"><div id="hunger" style="width:80%"></div></div>
         </div>
-      </div>
-
-      <div class="menu">
-        <div class="tile" id="openShop">🛍️ Магазин</div>
-        <div class="tile" id="openInv">🧰 Инвентарь</div>
-        <div class="tile" id="openQuests">🗺️ Квесты</div>
-        <div class="tile" id="openMini">🎮 Мини-игра</div>
-        <div class="tile" id="openLeaderboard">🏆 Лидерборд</div>
-        <div class="tile" id="openAdmin">⚙️ Админ</div>
-      </div>
-
-      <div class="panel viewer">
-        <canvas id="scene"></canvas>
-      </div>
-
-      <div class="panel">
-        <div class="stats">
-          <div>
-            <div class="kpi"><span class="name">Сытость</span><span class="val" id="satietyVal">100%</span></div>
-            <div class="bar"><div class="fill" id="satietyFill" style="width:100%"></div></div>
-          </div>
-          <div>
-            <div class="kpi"><span class="name">Энергия</span><span class="val" id="energyVal">100%</span></div>
-            <div class="bar"><div class="fill yellow" id="energyFill" style="width:100%"></div></div>
-          </div>
-          <div>
-            <div class="kpi"><span class="name">Настроение</span><span class="val" id="moodVal">100%</span></div>
-            <div class="bar"><div class="fill blue" id="moodFill" style="width:100%"></div></div>
-          </div>
+        <div class="bar">
+          <span>⚡ Энергия</span>
+          <div class="progress"><div id="energy" style="width:75%"></div></div>
         </div>
-
-        <div class="toolbar">
-          <button class="btn success" id="feedBtn">🍗 Полная</button>
-          <button class="btn warn" id="sleepBtn">🔋 Полная</button>
+        <div class="bar">
+          <span>😊 Настроение</span>
+          <div class="progress"><div id="mood" style="width:90%"></div></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Модалки -->
-  <div class="modal" id="modalShop">
-    <div class="sheet">
-      <div class="head"><b>🛍️ Магазин</b><button class="btn ghost" data-close="modalShop">✖</button></div>
-      <div class="list" id="shopList"></div>
-      <div class="note">Премиум-аксессуары будут за реальные деньги (подключим позже).</div>
-    </div>
-  </div>
+  <!-- three.js код -->
+  <script type="module">
+    import * as THREE from "three";
+    import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+    import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-  <div class="modal" id="modalInv">
-    <div class="sheet">
-      <div class="head"><b>🧰 Инвентарь</b><button class="btn ghost" data-close="modalInv">✖</button></div>
-      <div class="list" id="invList"></div>
-    </div>
-  </div>
+    const mount = document.getElementById("pet3d");
+    let renderer, scene, camera, controls, hamster;
 
-  <div class="modal" id="modalQuests">
-    <div class="sheet">
-      <div class="head"><b>🗺️ Квесты</b><button class="btn ghost" data-close="modalQuests">✖</button></div>
-      <div class="list" id="questsList"></div>
-    </div>
-  </div>
+    // сцена
+    scene = new THREE.Scene();
 
-  <div class="modal" id="modalMini">
-    <div class="sheet">
-      <div class="head"><b>🎮 Мини-игра | Кликер</b><button class="btn ghost" data-close="modalMini">✖</button></div>
-      <div class="pad">
-        <p class="muted">Кликай по площадке как можно быстрее 10 секунд. Награда — Seeds.</p>
-        <div id="clickArea" style="height:160px;border:1px dashed var(--border);border-radius:10px;background:#0c1626;margin-bottom:8px"></div>
-        <div class="row" style="justify-content:space-between;padding:0 4px 8px">
-          <div>Очки: <b id="clickScore">0</b></div>
-          <div>Время: <b id="clickTime">0</b></div>
-        </div>
-        <button class="btn primary" id="startMini">▶ Старт</button>
-      </div>
-    </div>
-  </div>
+    // камера
+    const aspect = mount.clientWidth / mount.clientHeight;
+    camera = new THREE.PerspectiveCamera(45, aspect, 0.01, 100);
+    camera.position.set(0.6, 0.35, 1.2);
 
-  <div class="modal" id="modalLb">
-    <div class="sheet">
-      <div class="head"><b>🏆 Лидерборд (локальный)</b><button class="btn ghost" data-close="modalLb">✖</button></div>
-      <div class="list" id="lbList"></div>
-      <div class="note">Глобальный лидерборд подключим, когда включим бэкенд.</div>
-    </div>
-  </div>
+    // рендерер
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(mount.clientWidth, mount.clientHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.shadowMap.enabled = true;
+    mount.appendChild(renderer.domElement);
 
-  <div class="modal" id="modalAdmin">
-    <div class="sheet">
-      <div class="head"><b>⚙️ Админ-панель (создатель)</b><button class="btn ghost" data-close="modalAdmin">✖</button></div>
-      <div class="pad" id="adminWrap"></div>
-    </div>
-  </div>
+    // свет
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x101018, 1.1));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.6);
+    dir.position.set(1.2, 1.6, 1.0);
+    dir.castShadow = true;
+    dir.shadow.mapSize.set(1024, 1024);
+    scene.add(dir);
 
-  <!-- three.js (глобальная) -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
+    // земля для тени
+    const groundGeo = new THREE.CircleGeometry(0.6, 64);
+    const groundMat = new THREE.ShadowMaterial({ opacity: 0.28 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI/2;
+    ground.receiveShadow = true;
+    scene.add(ground);
 
-  <!-- GAME LOGIC (обычный скрипт, без type=module) -->
-  <script>
-    const tg = window.Telegram?.WebApp; tg?.ready?.(); tg?.expand?.();
+    // контролы
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.minDistance = 0.5;
+    controls.maxDistance = 2.0;
+    controls.minPolarAngle = Math.PI * 0.2;
+    controls.maxPolarAngle = Math.PI * 0.49;
 
-    const CREATOR_ID = 1907547038;
-    const userId = tg?.initDataUnsafe?.user?.id ?? "localUser";
-    const storageKey = `tama_state_${userId}`;
-    const lbKey = "tama_lb_local";
+    // загрузка модели
+    const loader = new GLTFLoader();
+    const MODEL_URL = "./hamster.glb";
 
-    function safeNum(v,d){ return Number.isFinite(+v) ? +v : d }
-    let state={}; try{ state=JSON.parse(localStorage.getItem(storageKey)||"{}") }catch{ state={} }
-    state.seeds=safeNum(state.seeds,250);
-    state.satiety=safeNum(state.satiety,100);
-    state.energy=safeNum(state.energy,100);
-    state.mood=safeNum(state.mood,100);
-    state.accessories=Array.isArray(state.accessories)?state.accessories:[];
-    const save=()=>localStorage.setItem(storageKey,JSON.stringify(state));
-    const clamp01=n=>Math.max(0,Math.min(100,n));
-
-    const seedsLabel=document.getElementById("seedsLabel");
-    const satietyVal=document.getElementById("satietyVal");
-    const energyVal=document.getElementById("energyVal");
-    const moodVal=document.getElementById("moodVal");
-    const satietyFill=document.getElementById("satietyFill");
-    const energyFill=document.getElementById("energyFill");
-    const moodFill=document.getElementById("moodFill");
-
-    function render(){
-      seedsLabel.textContent=`Seeds: ${state.seeds}`;
-      satietyVal.textContent=`${clamp01(state.satiety)}%`;
-      energyVal.textContent =`${clamp01(state.energy)}%`;
-      moodVal.textContent   =`${clamp01(state.mood)}%`;
-      satietyFill.style.width=clamp01(state.satiety)+"%";
-      energyFill.style.width =clamp01(state.energy)+"%";
-      moodFill.style.width   =clamp01(state.mood)+"%";
-    }
-    render();
-
-    setInterval(()=>{
-      state.satiety=clamp01(state.satiety-0.15);
-      state.energy =clamp01(state.energy -0.12);
-      state.mood   =clamp01(state.mood   -0.08);
-      save(); render();
-    },3000);
-
-    document.getElementById("feedBtn").onclick=()=>{
-      if(state.seeds>=10){
-        state.seeds-=10; state.satiety=100; state.mood=clamp01(state.mood+5);
-        save(); render(); tg?.HapticFeedback?.notificationOccurred?.("success");
-      } else tg?.showPopup?.({title:"Мало Seeds",message:"Нужно 10 Seeds."})
-    }
-    document.getElementById("sleepBtn").onclick=()=>{
-      state.energy=100; state.mood=clamp01(state.mood+3); save(); render();
-    }
-
-    const byId=id=>document.getElementById(id);
-    function open(id){ byId(id).classList.add("open") }
-    function closeM(id){ byId(id).classList.remove("open") }
-    document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>closeM(b.getAttribute("data-close"))));
-
-    const SHOP=[
-      {id:"bowl",name:"Миска семечек",type:"consumable",price:30,effect:s=>{s.satiety=100}},
-      {id:"drinker",name:"Поилка",type:"consumable",price:30,effect:s=>{s.energy=100}},
-      {id:"xlfood",name:"Премиум-корм XL",type:"consumable",price:80,effect:s=>{s.satiety=100;s.mood=clamp01(s.mood+10)}},
-      {id:"bow",name:"Бантик",type:"premium",price:null},
-      {id:"hat",name:"Шляпа джентльмена",type:"premium",price:null},
-      {id:"glasses",name:"Очки звезды",type:"premium",price:null},
-    ];
-    function buildShop(){
-      const root=byId("shopList"); root.innerHTML="";
-      SHOP.forEach(it=>{
-        const row=document.createElement("div"); row.className="item";
-        const meta=document.createElement("div"); meta.className="meta";
-        const title=document.createElement("div"); title.textContent=it.name;
-        const sub=document.createElement("div"); sub.className="muted"; sub.textContent=it.type==="consumable"?"Расходник":"Аксессуар";
-        meta.append(title,sub);
-        const act=document.createElement("button"); act.className="btn";
-        if(it.type==="consumable"){
-          act.textContent=`Купить — ${it.price}🟡`;
-          act.onclick=()=>{
-            if(state.seeds>=it.price){ state.seeds-=it.price; it.effect(state); save(); render(); tg?.HapticFeedback?.notificationOccurred?.("success") }
-            else tg?.showPopup?.({title:"Недостаточно Seeds",message:"Заработай ещё в мини-игре или квестах."});
-          }
-        }else{
-          const badge=document.createElement("span"); badge.className="badge"; badge.textContent="Премиум";
-          title.append(" "); title.append(badge);
-          act.textContent="Получить";
-          act.onclick=()=>tg?.showPopup?.({title:"Скоро",message:"Подключим оплату — и можно будет взять аксессуар."});
-        }
-        row.append(meta,act); root.append(row);
+    loader.load(MODEL_URL, (gltf)=>{
+      hamster = gltf.scene;
+      hamster.traverse(o=>{
+        if(o.isMesh){ o.castShadow = true; o.receiveShadow = true; }
       });
-    }
-    function buildInv(){
-      const root=byId("invList"); root.innerHTML="";
-      if(!state.accessories.length){ root.innerHTML=`<div class="muted pad">Пусто. Купи аксессуары в магазине.</div>`; return }
-      state.accessories.forEach(a=>{
-        const row=document.createElement("div"); row.className="item";
-        row.innerHTML=`<div class="meta"><div>${a}</div><div class="muted">Аксессуар</div></div>`;
-        const btn=document.createElement("button"); btn.className="btn"; btn.textContent="Надеть";
-        btn.onclick=()=>tg?.showPopup?.({title:"Ок",message:`Аксессуар «${a}» надет (визуал подключим позже).`});
-        row.append(btn); root.append(row);
-      });
-    }
+      scene.add(hamster);
+      fitAndCenter(hamster);
+      animate();
+    }, undefined, (err)=>{
+      console.error("GLB load error:", err);
+    });
 
-    const QUESTS=[
-      {id:"q1",title:"Накорми хомяка 1 раз",reward:20,check:s=>s.satiety===100},
-      {id:"q2",title:"Полная энергия",reward:15,check:s=>s.energy===100},
-      {id:"q3",title:"Настроение ≥ 90%",reward:15,check:s=>s.mood>=90},
-    ];
-    function buildQuests(){
-      const root=byId("questsList"); root.innerHTML="";
-      QUESTS.forEach(q=>{
-        const row=document.createElement("div"); row.className="item";
-        row.innerHTML=`<div class="meta"><div>${q.title}</div><div class="muted">+${q.reward} Seeds</div></div>`;
-        const btn=document.createElement("button"); btn.className="btn"; btn.textContent="Получить";
-        btn.onclick=()=>{ if(q.check(state)){ state.seeds+=q.reward; save(); render(); tg?.HapticFeedback?.notificationOccurred?.("success") }
-          else tg?.showPopup?.({title:"Ещё нет",message:"Условие квеста пока не выполнено."})}
-        row.append(btn); root.append(row);
-      });
-    }
+    // центрирование и масштаб
+    function fitAndCenter(object){
+      const box = new THREE.Box3().setFromObject(object);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
 
-    // Мини-игра
-    let gameTimer=null, gameLeft=0, clicks=0;
-    const area=byId("clickArea");
-    byId("startMini").onclick=()=>{
-      clicks=0; gameLeft=10; byId("clickScore").textContent=0; byId("clickTime").textContent=10; area.style.pointerEvents="auto";
-      gameTimer&&clearInterval(gameTimer);
-      gameTimer=setInterval(()=>{
-        gameLeft--; byId("clickTime").textContent=gameLeft;
-        if(gameLeft<=0){
-          clearInterval(gameTimer); area.style.pointerEvents="none";
-          const reward=Math.max(5,Math.floor(clicks/5));
-          state.seeds+=reward; save(); render();
-          tg?.showPopup?.({title:"Раунд завершён",message:`Кликов: ${clicks}\nНаграда: +${reward} Seeds`});
-        }
-      },1000);
-    };
-    area.onclick=()=>{ if(gameLeft>0){ clicks++; byId("clickScore").textContent=clicks } };
+      object.position.sub(center);
+      const targetHeight = 0.45;
+      const scale = targetHeight / size.y;
+      object.scale.setScalar(scale);
 
-    // Лидерборд (локальный)
-    function loadLB(){ try{return JSON.parse(localStorage.getItem("tama_lb_local")||"[]")}catch{return[]} }
-    function saveLB(list){ localStorage.setItem("tama_lb_local",JSON.stringify(list)) }
-    function pushLB(score){
-      const list=loadLB(); const name=(tg?.initDataUnsafe?.user?.first_name||"Игрок");
-      list.push({name,score,ts:Date.now()}); list.sort((a,b)=>b.score-a.score); saveLB(list.slice(0,20));
-    }
-    function buildLB(){
-      const root=byId("lbList"); root.innerHTML="";
-      const list=loadLB();
-      if(!list.length){ root.innerHTML=`<div class="muted pad">Нет записей. Сыграй в мини-игру!</div>`; return }
-      list.forEach((r,i)=>{
-        const row=document.createElement("div"); row.className="item";
-        row.innerHTML=`<div class="meta"><div>#${i+1} — ${r.name}</div><div class="muted">${new Date(r.ts).toLocaleString()}</div></div><b>${r.score}</b>`;
-        root.append(row);
-      });
-    }
-    area.addEventListener("click",()=>{ if(gameLeft===0 && clicks>0){ pushLB(clicks); clicks=0 } });
+      const box2 = new THREE.Box3().setFromObject(object);
+      const size2 = box2.getSize(new THREE.Vector3());
+      const sphere = box2.getBoundingSphere(new THREE.Sphere());
 
-    // Админка
-    function buildAdmin(){
-      const wrap=byId("adminWrap"); wrap.innerHTML="";
-      if(+userId!==CREATOR_ID){ wrap.innerHTML=`<div class="muted">Доступно только создателю.</div>`; return }
-      const block=document.createElement("div");
-      block.innerHTML=`
-        <div class="row" style="margin-bottom:10px">
-          <input id="giveAmount" value="100" class="panel" style="flex:1;outline:none;color:var(--text)" />
-          <button class="btn success" id="giveSeeds">Выдать</button>
-        </div>
-        <div class="row">
-          <select id="accSel" class="panel" style="flex:1;outline:none;color:var(--text)">
-            <option value="Бантик">Бантик</option>
-            <option value="Шляпа джентльмена">Шляпа джентльмена</option>
-            <option value="Очки звезды">Очки звезды</option>
-          </select>
-          <button class="btn" id="giveAcc">Выдать</button>
-        </div>
-        <div class="muted" style="margin-top:8px">Это не донат, а удобный инструмент создателя. Видишь только ты.</div>
-      `;
-      wrap.append(block);
-      byId("giveSeeds").onclick=()=>{ const n=+byId("giveAmount").value||0; state.seeds+=Math.max(0,n); save(); render(); tg?.HapticFeedback?.notificationOccurred?.("success") }
-      byId("giveAcc").onclick=()=>{ const v=byId("accSel").value; if(!state.accessories.includes(v)) state.accessories.push(v); save(); }
+      const fov = camera.fov * (Math.PI/180);
+      const dist = Math.max(
+        size2.y / (2 * Math.tan(fov/2)),
+        size2.x / (2 * Math.tan(fov/2))
+      );
+      camera.position.set(sphere.center.x+dist*0.6, sphere.center.y+dist*0.35, sphere.center.z+dist*1.2);
+      controls.target.copy(sphere.center);
+      controls.update();
+
+      ground.position.set(sphere.center.x, box2.min.y-0.001, sphere.center.z);
+      ground.scale.set(1.2,1.2,1.2);
     }
 
-    // Открывашки
-    byId("openShop").onclick=()=>{ buildShop(); open("modalShop") }
-    byId("openInv").onclick =()=>{ buildInv(); open("modalInv") }
-    byId("openQuests").onclick=()=>{ buildQuests(); open("modalQuests") }
-    byId("openMini").onclick =()=>{ open("modalMini") }
-    byId("openLeaderboard").onclick=()=>{ buildLB(); open("modalLb") }
-    byId("openAdmin").onclick=()=>{ buildAdmin(); open("modalAdmin") }
-
-    // ===== 3D =====
-    const HAMSTER_GLB = encodeURI("./hamster.glb"); // переименуешь — обнови путь
-    const canvas=document.getElementById("scene");
-    const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-    const scene=new THREE.Scene();
-    const camera=new THREE.PerspectiveCamera(35,1,0.1,100); camera.position.set(0,0.6,2.1);
-    const controls=new THREE.OrbitControls(camera,renderer.domElement);
-    controls.enableZoom=false; controls.enablePan=false; controls.autoRotate=true; controls.autoRotateSpeed=1.4;
-
-    scene.add(new THREE.HemisphereLight(0xffffff,0x223344,0.9));
-    const dir=new THREE.DirectionalLight(0xffffff,0.8); dir.position.set(2,2,2); scene.add(dir);
-
-    const floor=new THREE.Mesh(new THREE.CircleGeometry(1.6,48), new THREE.MeshStandardMaterial({color:0x26486f,metalness:.2,roughness:.8}));
-    floor.rotation.x=-Math.PI/2; floor.position.y=-0.45; scene.add(floor);
-
-    let model;
-    const loader=new THREE.GLTFLoader();
-    loader.load(HAMSTER_GLB,(glb)=>{ model=glb.scene; model.scale.set(2.8,2.8,2.8); model.position.set(0,-0.35,0); scene.add(model) });
-
-    function resize(){
-      const w=canvas.clientWidth, h=canvas.clientHeight||260;
-      renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+    // цикл
+    function animate(){
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
     }
-    new ResizeObserver(resize).observe(canvas); resize();
-    (function loop(){ requestAnimationFrame(loop); controls.update(); renderer.render(scene,camera) })();
+
+    // ресайз
+    function onResize(){
+      const w = mount.clientWidth, h = mount.clientHeight;
+      camera.aspect = w/h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w,h);
+    }
+    addEventListener("resize", onResize);
+    new ResizeObserver(onResize).observe(mount);
   </script>
 </body>
 </html>
