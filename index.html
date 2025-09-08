@@ -4,604 +4,471 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Tamagocho</title>
+
+  <!-- Telegram Mini App SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
     :root{
-      --bg:#0b1420;
-      --panel:#111a28;
-      --panel-2:#0e1724;
-      --border:#1e2a3c;
-      --text:#e6eef8;
-      --muted:#9bb2d0;
-      --accent:#58b0ff;
-      --ok:#35d39e;
-      --warn:#f5a623;
-      --bad:#ff6b6b;
-      --chip:#172335;
-      --chip-2:#1a2a3f;
-      --btn:#18273b;
-      --btn-hover:#203247;
-      --shadow:0 8px 32px rgba(0,0,0,.35);
-      --radius:16px;
+      --bg:#0f1620;--card:#151e2f;--text:#e6eef8;--muted:#9bb2d0;
+      --accent:#80de6b;--ok:#34d399;--warn:#f59e0b;--danger:#ef4444;
+      --deep:#0b1320;--panel:#101a2a;--border:rgba(255,255,255,.06)
     }
     *{box-sizing:border-box}
+    html,body{height:100%}
     body{
-      margin:0; background:var(--bg); color:var(--text);
-      font-family:system-ui,Segoe UI,Roboto,Arial;
+      margin:0;background:var(--bg);color:var(--text);
+      font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif
     }
-    .wrap{
-      max-width:420px; margin:0 auto; padding:18px 16px 28px 16px;
-    }
+    .wrap{max-width:420px;margin:0 auto;padding:18px 16px 32px}
     .card{
-      background:var(--panel); border:1px solid var(--border);
-      border-radius:var(--radius); box-shadow:var(--shadow);
+      background:var(--card);border-radius:18px;padding:14px 14px 4px;
+      box-shadow:0 10px 28px rgba(0,0,0,.35)
     }
+    .row{display:flex;gap:10px;flex-wrap:wrap}
     .header{
-      display:flex; align-items:center; justify-content:space-between;
-      padding:14px 16px; border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:12px;margin-bottom:12px
     }
-    .title{font-weight:700}
-    .seeds{display:inline-flex; align-items:center; gap:8px; background:var(--chip);
-      padding:8px 10px; border-radius:12px; font-weight:700}
-    .grid-btns{
-      display:grid; grid-template-columns:repeat(3,1fr); gap:10px;
-      padding:12px 12px 0;
-    }
+    .avatar{width:72px;height:72px;border-radius:16px;object-fit:cover;background:#000}
+    .title{font-size:18px;font-weight:700}
+    .muted{color:var(--muted);font-size:13px}
+    .panel{background:var(--panel);border-radius:14px;padding:12px;border:1px solid var(--border)}
     .btn{
-      background:var(--btn); color:var(--text); border:1px solid var(--border);
-      padding:10px 12px; border-radius:12px; cursor:pointer; text-align:center;
-      user-select:none; transition:.15s background-color;
-      display:flex; align-items:center; justify-content:center; gap:8px;
+      display:flex;align-items:center;justify-content:center;gap:8px;
+      height:44px;padding:0 14px;border-radius:12px;
+      background:#0f1a2b;border:1px solid var(--border);color:var(--text);
+      cursor:pointer;user-select:none;transition:.2s
     }
-    .btn:hover{background:var(--btn-hover)}
-    .btn.warn{border-color:#3a2b10; background:#241a0c}
-    .btn.ok{border-color:#0e3a2c; background:#0c261e}
-    .content{padding:12px}
-    /* >>> 3D контейнер — выше и шире */
-    #hamster3d{
-      width:100%; height:520px; background:#0b1420;
-      border:1px solid var(--border); border-radius:16px; overflow:hidden;
+    .btn:hover{filter:brightness(1.1)}
+    .btn.primary{background:#183049}
+    .btn.success{background:#0d3528;border-color:#0f5132}
+    .btn.warn{background:#3a2b07;border-color:#7c5c0a}
+    .btn.ghost{background:transparent}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .bar{height:8px;background:#0a1220;border-radius:8px;overflow:hidden; border:1px solid var(--border)}
+    .fill{height:100%;background:linear-gradient(90deg,#1dd881,#0fb56b)}
+    .fill.yellow{background:linear-gradient(90deg,#ffd54a,#ffb300)}
+    .fill.blue{background:linear-gradient(90deg,#63b3ff,#3182ce)}
+    .kpi{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+    .kpi .name{font-size:13px;color:var(--muted)}
+    .kpi .val{font-weight:700}
+    .toolbar{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+    .toolbar .btn{height:36px;font-size:13px}
+    .menu{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0 6px}
+    .tile{
+      background:#0f1a2b;border:1px solid var(--border);border-radius:14px;height:60px;
+      display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;cursor:pointer
     }
-    /* Бар статистик */
-    .stats{
-      display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:12px;
-    }
-    .stat{
-      background:var(--panel-2); border:1px solid var(--border); border-radius:12px;
-      padding:12px; font-size:14px;
-    }
-    .bar{height:8px; background:#0d2033; border-radius:999px; overflow:hidden; margin-top:8px}
-    .bar > span{display:block; height:100%; background:var(--accent)}
-    .row{display:flex; align-items:center; justify-content:space-between; gap:10px}
-
-    /* Модалки */
+    .tile:hover{filter:brightness(1.1)}
+    .pad{padding:12px}
     .modal{
-      position:fixed; inset:0; display:none; place-items:center; z-index:50;
-      background:rgba(2,10,18,.6); backdrop-filter:blur(3px);
+      position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45)
     }
-    .modal.show{display:grid}
-    .sheet{
-      width:min(94vw,420px); max-height:86vh; overflow:auto;
-      background:var(--panel); border:1px solid var(--border);
-      border-radius:16px; box-shadow:var(--shadow)
-    }
-    .sheet .head{
-      padding:12px 14px; border-bottom:1px solid var(--border);
-      display:flex; justify-content:space-between; align-items:center
-    }
-    .list{padding:8px 12px}
-    .item{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      border:1px solid var(--border); background:var(--panel-2);
-      padding:10px; border-radius:12px; margin:8px 0;
-    }
-    .muted{color:var(--muted)}
-    .pill{display:inline-flex; align-items:center; gap:6px; background:var(--chip-2); padding:6px 8px; border-radius:999px; font-size:12px}
-    .inline{display:inline-flex; gap:8px; align-items:center}
-    .danger{color:#ff9c9c}
-    .hidden{display:none}
-
-    /* Мини-игра */
-    .mini{
-      padding:10px 12px; color:var(--text); font-size:14px;
-    }
-    .mini canvas{width:100%; height:240px; background:#0d2033; border:1px solid var(--border); border-radius:12px}
-
-    .admin-grid{display:grid; gap:10px; padding:12px}
-    input,select{
-      width:100%; background:#0f1a27; color:var(--text);
-      border:1px solid var(--border); border-radius:10px; padding:10px;
-    }
-    .footnote{padding:10px 12px; color:var(--muted); font-size:12px}
+    .modal.open{display:flex}
+    .sheet{width:100%;max-width:420px;background:var(--card);border-radius:18px 18px 0 0;border:1px solid var(--border)}
+    .sheet .head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .list{display:flex;flex-direction:column;padding:8px 12px;max-height:60vh;overflow:auto;gap:10px}
+    .item{display:flex;align-items:center;justify-content:space-between;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px}
+    .item .meta{display:flex;flex-direction:column;gap:4px}
+    .badge{font-size:11px;padding:2px 6px;border-radius:999px;background:#2e2538;color:#d8b4fe;border:1px solid rgba(255,255,255,.08);display:inline-flex;gap:4px;align-items:center}
+    .note{font-size:12px;color:var(--muted);padding:10px 14px;border-top:1px dashed var(--border)}
+    canvas{display:block;width:100%;height:260px;background:#0c1524;border-radius:14px;border:1px solid var(--border)}
+    .viewer{padding:8px 8px 0}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
       <div class="header">
-        <div class="title">🐹 Tamagocho</div>
-        <div class="seeds" id="seedsView">Seeds: 0</div>
+        <img class="avatar" src="https://i.imgur.com/3r3VqQ8.jpeg" alt="pet" />
+        <div>
+          <div class="title">Tamagocho</div>
+          <div class="muted" id="seedsLabel">Seeds: 0</div>
+        </div>
       </div>
 
-      <div class="grid-btns">
-        <div class="btn" data-open="#shop">🛒 Магазин</div>
-        <div class="btn" data-open="#inv">🎒 Инвентарь</div>
-        <div class="btn" data-open="#quests">🗺️ Квесты</div>
-        <div class="btn" data-open="#mini">🎮 Мини-игра</div>
-        <div class="btn" data-open="#board">🏆 Лидерборд</div>
-        <div class="btn" id="adminBtn" data-open="#admin">⚙️ Админ</div>
+      <!-- Меню -->
+      <div class="menu">
+        <div class="tile" id="openShop">🛍️ Магазин</div>
+        <div class="tile" id="openInv">🧰 Инвентарь</div>
+        <div class="tile" id="openQuests">🗺️ Квесты</div>
+        <div class="tile" id="openMini">🎮 Мини-игра</div>
+        <div class="tile" id="openLeaderboard">🏆 Лидерборд</div>
+        <div class="tile" id="openAdmin">⚙️ Админ</div>
       </div>
 
-      <div class="content">
-        <div id="hamster3d"></div>
+      <!-- 3D сцена -->
+      <div class="panel viewer">
+        <canvas id="scene"></canvas>
       </div>
 
-      <div class="stats">
-        <div class="stat">
-          <div class="row">
-            <div class="inline">💚 Сытость</div>
-            <b id="satVal">0%</b>
+      <!-- Статы -->
+      <div class="panel">
+        <div class="stats">
+          <div>
+            <div class="kpi"><span class="name">Сытость</span><span class="val" id="satietyVal">100%</span></div>
+            <div class="bar"><div class="fill" id="satietyFill" style="width:100%"></div></div>
           </div>
-          <div class="bar"><span id="satBar" style="width:0%"></span></div>
-          <div class="row" style="margin-top:8px">
-            <div class="pill">🥄 Полная</div>
-            <div class="pill inline" id="feedBtn">🪙 +10</div>
+          <div>
+            <div class="kpi"><span class="name">Энергия</span><span class="val" id="energyVal">100%</span></div>
+            <div class="bar"><div class="fill yellow" id="energyFill" style="width:100%"></div></div>
+          </div>
+          <div>
+            <div class="kpi"><span class="name">Настроение</span><span class="val" id="moodVal">100%</span></div>
+            <div class="bar"><div class="fill blue" id="moodFill" style="width:100%"></div></div>
           </div>
         </div>
 
-        <div class="stat">
-          <div class="row">
-            <div class="inline">⚡ Энергия</div>
-            <b id="engVal">0%</b>
-          </div>
-          <div class="bar"><span id="engBar" style="width:0%"></span></div>
-          <div class="row" style="margin-top:8px">
-            <div class="pill">🔋 Полная</div>
-            <div class="pill inline" id="sleepBtn">🪙 +10</div>
-          </div>
+        <div class="toolbar">
+          <button class="btn success" id="feedBtn">🍗 Полная</button>
+          <button class="btn warn" id="sleepBtn">🔋 Полная</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ======= МОДАЛКИ ======= -->
-  <!-- Магазин -->
-  <div id="shop" class="modal"><div class="sheet">
-    <div class="head">
-      <b>🛒 Магазин</b>
-      <div class="btn" data-close>✖</div>
+  <!-- Модалки -->
+  <div class="modal" id="modalShop">
+    <div class="sheet">
+      <div class="head"><b>🛍️ Магазин</b><button class="btn ghost" data-close="modalShop">✖</button></div>
+      <div class="list" id="shopList"></div>
+      <div class="note">Премиум-аксессуары будут за реальные деньги (подключим позже).</div>
     </div>
-    <div class="list" id="shopList"></div>
-    <div class="footnote">Премиум-аксессуары будут за реальные деньги (подключим позже). Создателю — бесплатно.</div>
-  </div></div>
+  </div>
 
-  <!-- Инвентарь -->
-  <div id="inv" class="modal"><div class="sheet">
-    <div class="head">
-      <b>🎒 Инвентарь</b>
-      <div class="btn" data-close>✖</div>
+  <div class="modal" id="modalInv">
+    <div class="sheet">
+      <div class="head"><b>🧰 Инвентарь</b><button class="btn ghost" data-close="modalInv">✖</button></div>
+      <div class="list" id="invList"></div>
     </div>
-    <div class="list" id="invList"></div>
-  </div></div>
+  </div>
 
-  <!-- Квесты -->
-  <div id="quests" class="modal"><div class="sheet">
-    <div class="head">
-      <b>🗺️ Квесты</b>
-      <div class="btn" data-close>✖</div>
+  <div class="modal" id="modalQuests">
+    <div class="sheet">
+      <div class="head"><b>🗺️ Квесты</b><button class="btn ghost" data-close="modalQuests">✖</button></div>
+      <div class="list" id="questsList"></div>
     </div>
-    <div class="list" id="questList"></div>
-  </div></div>
+  </div>
 
-  <!-- Мини-игра -->
-  <div id="mini" class="modal"><div class="sheet">
-    <div class="head">
-      <b>🎮 Мини-игра | Кликер</b>
-      <div class="btn" data-close>✖</div>
-    </div>
-    <div class="mini">
-      <p class="muted">Кликай по хомяку как можно быстрее за 10 секунд. Награда — Seeds.</p>
-      <div style="display:grid;gap:8px">
-        <canvas id="miniCanvas" width="380" height="240"></canvas>
-        <div class="row">
-          <div>Очки: <b id="miniScore">0</b></div>
-          <div>Время: <b id="miniTime">0</b></div>
-          <div class="btn ok" id="miniStart">▶ Старт</div>
+  <div class="modal" id="modalMini">
+    <div class="sheet">
+      <div class="head"><b>🎮 Мини-игра | Кликер</b><button class="btn ghost" data-close="modalMini">✖</button></div>
+      <div class="pad">
+        <p class="muted">Кликай по площадке как можно быстрее 10 секунд. Награда — Seeds.</p>
+        <div id="clickArea" style="height:160px;border:1px dashed var(--border);border-radius:10px;background:#0c1626;margin-bottom:8px"></div>
+        <div class="row" style="justify-content:space-between;padding:0 4px 8px">
+          <div>Очки: <b id="clickScore">0</b></div>
+          <div>Время: <b id="clickTime">0</b></div>
         </div>
+        <button class="btn primary" id="startMini">▶ Старт</button>
       </div>
     </div>
-  </div></div>
+  </div>
 
-  <!-- Лидерборд -->
-  <div id="board" class="modal"><div class="sheet">
-    <div class="head">
-      <b>🏆 Лидерборд (локальный)</b>
-      <div class="btn" data-close>✖</div>
+  <div class="modal" id="modalLb">
+    <div class="sheet">
+      <div class="head"><b>🏆 Лидерборд (локальный)</b><button class="btn ghost" data-close="modalLb">✖</button></div>
+      <div class="list" id="lbList"></div>
+      <div class="note">Глобальный лидерборд подключим, когда включим бэкенд.</div>
     </div>
-    <div class="list" id="boardList"></div>
-    <div class="footnote">Глобальный лидерборд подключим, когда включим бекенд.</div>
-  </div></div>
+  </div>
 
-  <!-- Админ (только создатель) -->
-  <div id="admin" class="modal"><div class="sheet">
-    <div class="head">
-      <b>⚙️ Админ-панель (создатель)</b>
-      <div class="btn" data-close>✖</div>
+  <div class="modal" id="modalAdmin">
+    <div class="sheet">
+      <div class="head"><b>⚙️ Админ-панель (создатель)</b><button class="btn ghost" data-close="modalAdmin">✖</button></div>
+      <div class="pad" id="adminWrap"></div>
     </div>
-    <div class="admin-grid">
-      <div>
-        <label>Выдать Seeds</label>
-        <input type="number" id="admSeeds" value="100" />
-        <div class="btn ok" id="giveSeeds">Выдать</div>
-      </div>
-      <div>
-        <label>Выдать аксессуар</label>
-        <select id="admItem"></select>
-        <div class="btn ok" id="giveItem">Выдать</div>
-      </div>
-      <div class="muted">Это не донат, а удобный инструмент создателя. Видишь только ты.</div>
-    </div>
-  </div></div>
+  </div>
 
-  <!-- ========= ИГРОВАЯ ЛОГИКА ========= -->
-  <script>
-    // Telegram WebApp
-    const tg = window.Telegram?.WebApp || null;
-    tg?.ready();
-    tg?.expand();
-
-    const CREATOR_ID = 1907547038;  // только ты видишь админ-панель и можешь брать премиум бесплатно
-    const userId = tg?.initDataUnsafe?.user?.id ?? 0;
-    const userName = tg?.initDataUnsafe?.user?.first_name ?? 'Игрок';
-    const IS_OWNER = (userId === CREATOR_ID);
-
-    document.getElementById('adminBtn').classList.toggle('hidden', !IS_OWNER);
-
-    // Хранилище
-    const KEY = `tama_v2_${userId || 'local'}`;
-    const state = loadState() || {
-      seeds: 250,
-      sat: 80, // сытость
-      eng: 75, // энергия
-      inv: [],
-      accessories: [],
-      best: 0
-    };
-
-    function loadState(){
-      try{ return JSON.parse(localStorage.getItem(KEY) || '{}'); }catch{ return null }
-    }
-    function saveState(){ localStorage.setItem(KEY, JSON.stringify(state)); }
-    function fmt(n){ return new Intl.NumberFormat('ru-RU').format(n); }
-
-    // UI бинды
-    const seedsView = document.getElementById('seedsView');
-    const satVal = document.getElementById('satVal');
-    const satBar = document.getElementById('satBar');
-    const engVal = document.getElementById('engVal');
-    const engBar = document.getElementById('engBar');
-
-    function redraw(){
-      seedsView.textContent = `Seeds: ${fmt(state.seeds)}`;
-      satVal.textContent = `${state.sat}%`; satBar.style.width = `${state.sat}%`;
-      engVal.textContent = `${state.eng}%`; engBar.style.width = `${state.eng}%`;
-    }
-    redraw();
-
-    // Кнопки пополнения статов (за внутр. валюту)
-    document.getElementById('feedBtn').onclick = ()=>{
-      if(state.seeds < 10) return alert('Не хватает Seeds.');
-      state.seeds -= 10; state.sat = 100; saveState(); redraw();
-    }
-    document.getElementById('sleepBtn').onclick = ()=>{
-      if(state.seeds < 10) return alert('Не хватает Seeds.');
-      state.seeds -= 10; state.eng = 100; saveState(); redraw();
-    }
-
-    // Модалки
-    document.querySelectorAll('[data-open]').forEach(el=>{
-      el.addEventListener('click', ()=>{
-        const sel = el.getAttribute('data-open');
-        document.querySelector(sel)?.classList.add('show');
-      });
-    });
-    document.querySelectorAll('[data-close]').forEach(el=>{
-      el.addEventListener('click', ()=> el.closest('.modal')?.classList.remove('show'));
-    });
-    document.querySelectorAll('.modal').forEach(m=>{
-      m.addEventListener('click', (e)=> { if(e.target===m) m.classList.remove('show'); });
-    });
-
-    // Товары магазина
-    const GOODS = [
-      { id:'food_small',  name:'Миска семечек',     type:'consum',  add:{sat:100}, price:30,  premium:false },
-      { id:'drink',       name:'Поилка',            type:'consum',  add:{eng:100}, price:30,  premium:false },
-      { id:'food_big',    name:'Премиум-корм XL',   type:'consum',  add:{sat:100,eng:100}, price:80, premium:false },
-
-      { id:'bow',         name:'Бантик',            type:'acc',     price:0,   premium:true },
-      { id:'hat',         name:'Шляпа джентльмена', type:'acc',     price:0,   premium:true },
-      { id:'glasses',     name:'Очки звезды',       type:'acc',     price:0,   premium:true }
-    ];
-
-    // Магазин: рендер
-    const shopList = document.getElementById('shopList');
-    function drawShop(){
-      shopList.innerHTML = '';
-      GOODS.forEach(g=>{
-        const row = document.createElement('div'); row.className='item';
-        const left = document.createElement('div');
-        left.innerHTML = `<div><b>${g.name}</b> ${g.premium?'<span class="pill danger">Премиум</span>':''}</div>
-                          <div class="muted">${g.type==='consum'?'Расходник':'Аксессуар'}</div>`;
-        const buy = document.createElement('div'); buy.className='btn';
-        buy.textContent = g.premium ? (IS_OWNER?'Получить':'Скоро 💳') : `Купить — ${g.price}🪙`;
-        buy.onclick = ()=>{
-          if(g.premium){
-            if(!IS_OWNER) return alert('Премиум-аксессуары будут доступны после подключения оплаты.');
-            if(!state.accessories.includes(g.id)) state.accessories.push(g.id);
-            saveState(); alert('Выдано!'); drawInv();
-          }else{
-            if(state.seeds<g.price) return alert('Не хватает Seeds.');
-            state.seeds -= g.price;
-            if(g.type==='consum') state.inv.push(g.id);
-            else if(!state.accessories.includes(g.id)) state.accessories.push(g.id);
-            // бонус к статам для consum
-            if(g.add){ if(g.add.sat) state.sat = 100; if(g.add.eng) state.eng = 100; }
-            saveState(); redraw(); drawInv();
-          }
-        };
-        row.append(left,buy); shopList.append(row);
-      });
-    }
-    drawShop();
-
-    // Инвентарь
-    const invList = document.getElementById('invList');
-    function drawInv(){
-      invList.innerHTML = '';
-      // consumables
-      const consumCounts = {};
-      state.inv.forEach(id=>consumCounts[id]=(consumCounts[id]||0)+1);
-      Object.entries(consumCounts).forEach(([id,qty])=>{
-        const g = GOODS.find(x=>x.id===id);
-        const row = document.createElement('div'); row.className='item';
-        row.innerHTML = `<div><b>${g.name}</b><div class="muted">Количество: ${qty}</div></div>`;
-        const use = document.createElement('div'); use.className='btn ok'; use.textContent='Использовать';
-        use.onclick = ()=>{
-          // применяем
-          const i = state.inv.indexOf(id);
-          if(i>=0){ state.inv.splice(i,1); if(g.add){ if(g.add.sat) state.sat=100; if(g.add.eng) state.eng=100; } saveState(); redraw(); drawInv(); }
-        };
-        row.appendChild(use); invList.appendChild(row);
-      });
-      // accessories
-      state.accessories.forEach(id=>{
-        const g = GOODS.find(x=>x.id===id);
-        if(!g) return;
-        const row = document.createElement('div'); row.className='item';
-        row.innerHTML = `<div><b>${g.name}</b><div class="muted">Аксессуар</div></div>`;
-        const wear = document.createElement('div'); wear.className='btn'; wear.textContent='Надеть';
-        wear.onclick = ()=> alert('Визуальное надевание аксессуаров добавим (привяжем к 3D).');
-        row.appendChild(wear); invList.appendChild(row);
-      });
-      if(!invList.innerHTML) invList.innerHTML = `<div class="muted" style="padding:12px">Пока пусто.</div>`;
-    }
-    drawInv();
-
-    // Квесты (простые дейлики)
-    const questList = document.getElementById('questList');
-    const QUESTS = [
-      { id:'q_feed',  name:'Накорми хомяка',   reward:20,  run:()=>{ state.sat=100; } },
-      { id:'q_sleep', name:'Положи спать',     reward:20,  run:()=>{ state.eng=100; } },
-      { id:'q_play',  name:'Сыграй в мини-игру',reward:30,  run:()=>{} },
-    ];
-    function drawQuests(){
-      questList.innerHTML='';
-      QUESTS.forEach(q=>{
-        const row = document.createElement('div'); row.className='item';
-        row.innerHTML = `<div><b>${q.name}</b><div class="muted">Награда: ${q.reward} Seeds</div></div>`;
-        const act = document.createElement('div'); act.className='btn ok'; act.textContent='Выполнить';
-        act.onclick = ()=>{
-          q.run(); state.seeds += q.reward; saveState(); redraw(); alert('Квест выполнен!');
-        };
-        row.appendChild(act); questList.appendChild(row);
-      });
-    }
-    drawQuests();
-
-    // Админ-панель (создатель)
-    if(IS_OWNER){
-      const sel = document.getElementById('admItem');
-      GOODS.forEach(g=>{
-        const opt=document.createElement('option'); opt.value=g.id; opt.textContent=g.name;
-        sel.appendChild(opt);
-      });
-      document.getElementById('giveSeeds').onclick = ()=>{
-        const n = +document.getElementById('admSeeds').value||0;
-        state.seeds += n; saveState(); redraw(); alert('Выдано');
-      };
-      document.getElementById('giveItem').onclick = ()=>{
-        const id = sel.value;
-        const g = GOODS.find(x=>x.id===id);
-        if(!g) return;
-        if(g.type==='consum') state.inv.push(id); else if(!state.accessories.includes(id)) state.accessories.push(id);
-        saveState(); drawInv(); alert('Выдано');
-      };
-    }
-
-    // Лидерборд локальный
-    function pushScore(score){
-      const k = `${KEY}_board`;
-      const arr = JSON.parse(localStorage.getItem(k)||'[]');
-      arr.push({name:userName, score, ts:Date.now()});
-      arr.sort((a,b)=>b.score-a.score);
-      localStorage.setItem(k, JSON.stringify(arr.slice(0,50)));
-    }
-    function drawBoard(){
-      const k = `${KEY}_board`;
-      const arr = JSON.parse(localStorage.getItem(k)||'[]');
-      const box = document.getElementById('boardList');
-      box.innerHTML='';
-      arr.forEach((r,i)=>{
-        const row = document.createElement('div'); row.className='item';
-        row.innerHTML = `<div><b>#${i+1}. ${r.name}</b><div class="muted">${new Date(r.ts).toLocaleString()}</div></div>
-                         <div><b>${r.score}</b></div>`;
-        box.appendChild(row);
-      });
-      if(!box.innerHTML) box.innerHTML = `<div class="muted" style="padding:12px">Пока нет результатов.</div>`;
-    }
-    drawBoard();
-
-    // ===== Мини-игра (кликер) =====
-    (function(){
-      const canvas = document.getElementById('miniCanvas');
-      const ctx = canvas.getContext('2d');
-      const startBtn = document.getElementById('miniStart');
-      const scoreEl = document.getElementById('miniScore');
-      const timeEl  = document.getElementById('miniTime');
-
-      let score=0, time=0, running=false;
-      let hx=190, hy=120, r=20; // позиция «цели»
-
-      function draw(){
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        // фон
-        ctx.fillStyle='#0f2238'; ctx.fillRect(0,0,canvas.width,canvas.height);
-        // цель
-        ctx.beginPath(); ctx.fillStyle='#ffb86c';
-        ctx.arc(hx,hy,r,0,Math.PI*2); ctx.fill();
-        // лицо
-        ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(hx-6,hy-3,3,0,6.28); ctx.fill();
-        ctx.beginPath(); ctx.arc(hx+6,hy-3,3,0,6.28); ctx.fill();
-        ctx.fillStyle='#c94f4f'; ctx.beginPath(); ctx.arc(hx,hy+5,4,0,6.28); ctx.fill();
-      }
-      draw();
-
-      canvas.addEventListener('click',(e)=>{
-        if(!running) return;
-        const rect = canvas.getBoundingClientRect();
-        const x = e.clientX-rect.left, y = e.clientY-rect.top;
-        const d = Math.hypot(x-hx,y-hy);
-        if(d <= r){
-          score++;
-          scoreEl.textContent = score;
-          // новая позиция
-          hx = 30 + Math.random()*(canvas.width-60);
-          hy = 30 + Math.random()*(canvas.height-60);
-          draw();
-        }
-      });
-
-      startBtn.addEventListener('click', ()=>{
-        if(running) return;
-        score=0; time=10; running=true;
-        scoreEl.textContent='0'; timeEl.textContent=time;
-        const tick = setInterval(()=>{
-          if(!running) return clearInterval(tick);
-          time--; timeEl.textContent=time;
-          if(time<=0){
-            running=false; clearInterval(tick);
-            const reward = 5 + score; // простая формула
-            state.seeds += reward;
-            if(score>state.best){ state.best=score; pushScore(score); drawBoard(); }
-            saveState(); redraw();
-            alert(`Игра окончена! Очки: ${score}. Награда: ${reward} Seeds.`);
-          }
-        },1000);
-      });
-    })();
-  </script>
-
-  <!-- ========= 3D ХОМЯК (крупный) ========= -->
+  <!-- GAME LOGIC -->
   <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.150.0/examples/jsm/controls/OrbitControls.js';
-    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.150.0/examples/jsm/loaders/GLTFLoader.js';
+    // ====== THREE IMPORTS ======
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+    import { GLTFLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js";
 
-    const container = document.getElementById('hamster3d');
+    // ====== TELEGRAM CONTEXT ======
+    const tg = window.Telegram?.WebApp;
+    tg?.ready();
+    tg?.expand?.();
 
-    const scene  = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(55, container.clientWidth/container.clientHeight, 0.01, 100);
-    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    container.appendChild(renderer.domElement);
+    const CREATOR_ID = 1907547038; // твой id
+    const userId = tg?.initDataUnsafe?.user?.id ?? "localUser";
+    const storageKey = `tama_state_${userId}`;
+    const lbKey = "tama_lb_local";
 
-    // свет
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x223344, 1.7);
-    const dir  = new THREE.DirectionalLight(0xffffff, 2.4);
-    dir.position.set(2.2, 4.2, 3.2);
-    scene.add(hemi, dir);
+    // ====== STATE (надёжная инициализация) ======
+    function safeNum(v, d){ return Number.isFinite(Number(v)) ? Number(v) : d }
+    let state = {};
+    try { state = JSON.parse(localStorage.getItem(storageKey) || "{}") } catch { state = {} }
 
-    // подставка
-    const ground = new THREE.Mesh(
-      new THREE.CircleGeometry(3.2, 64),
-      new THREE.MeshStandardMaterial({ color: 0x142338, roughness: 0.96, metalness: 0 })
-    );
-    ground.rotation.x = -Math.PI/2; ground.position.y = -1.0;
-    scene.add(ground);
+    state.seeds     = safeNum(state.seeds, 250);
+    state.satiety   = safeNum(state.satiety, 100);
+    state.energy    = safeNum(state.energy, 100);
+    state.mood      = safeNum(state.mood, 100);
+    state.accessories = Array.isArray(state.accessories) ? state.accessories : [];
 
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.enablePan = false;
+    function save(){ localStorage.setItem(storageKey, JSON.stringify(state)) }
 
-    function fitCameraToObject(obj, offset = 1.12) { // чуть ближе
-      const box   = new THREE.Box3().setFromObject(obj);
-      const size  = box.getSize(new THREE.Vector3());
-      const center= box.getCenter(new THREE.Vector3());
+    // ====== UI BINDINGS ======
+    const seedsLabel  = document.getElementById("seedsLabel");
+    const satietyVal  = document.getElementById("satietyVal");
+    const energyVal   = document.getElementById("energyVal");
+    const moodVal     = document.getElementById("moodVal");
+    const satietyFill = document.getElementById("satietyFill");
+    const energyFill  = document.getElementById("energyFill");
+    const moodFill    = document.getElementById("moodFill");
 
-      obj.position.sub(center);
-      obj.position.y = -box.min.y;
+    function clamp01(n){ return Math.max(0, Math.min(100, n)) }
 
-      const maxDim = Math.max(size.x, size.y, size.z);
-      const fov    = camera.fov * (Math.PI/180);
-      let dist     = (maxDim/2) / Math.tan(fov/2);
-      dist = dist * offset;
-
-      camera.position.set(0, maxDim * 0.66, dist);
-      controls.target.set(0, maxDim * 0.38, 0);
-
-      controls.minDistance = maxDim * 0.55;
-      controls.maxDistance = maxDim * 2.2;
-      controls.update();
+    function render(){
+      seedsLabel.textContent = `Seeds: ${state.seeds}`;
+      satietyVal.textContent = `${clamp01(state.satiety)}%`;
+      energyVal.textContent  = `${clamp01(state.energy)}%`;
+      moodVal.textContent    = `${clamp01(state.mood)}%`;
+      satietyFill.style.width = clamp01(state.satiety) + "%";
+      energyFill.style.width  = clamp01(state.energy) + "%";
+      moodFill.style.width    = clamp01(state.mood) + "%";
     }
+    render();
+
+    // ====== SIMPLE DECAY ======
+    setInterval(()=>{
+      state.satiety = clamp01(state.satiety - 0.15);
+      state.energy  = clamp01(state.energy - 0.12);
+      state.mood    = clamp01(state.mood - 0.08);
+      save(); render();
+    }, 3000);
+
+    // ====== FEED / SLEEP ======
+    document.getElementById("feedBtn").onclick = ()=>{
+      if(state.seeds >= 10){
+        state.seeds -= 10;
+        state.satiety = 100;
+        state.mood = clamp01(state.mood + 5);
+        save(); render();
+      } else tg?.showPopup?.({title:"Мало Seeds", message:"Нужно 10 Seeds."});
+    }
+    document.getElementById("sleepBtn").onclick = ()=>{
+      state.energy = 100;
+      state.mood = clamp01(state.mood + 3);
+      save(); render();
+    }
+
+    // ====== MODALS HELPERS ======
+    const byId = id => document.getElementById(id);
+    function open(id){ byId(id).classList.add("open") }
+    function close(id){ byId(id).classList.remove("open") }
+    document.querySelectorAll("[data-close]").forEach(b=>{
+      b.addEventListener("click",()=> close(b.getAttribute("data-close")));
+    });
+
+    // ====== SHOP / INVENTORY ======
+    const SHOP = [
+      { id:"bowl",    name:"Миска семечек", type:"consumable", price:30, effect: s=>{s.satiety=100} },
+      { id:"drinker", name:"Поилка",        type:"consumable", price:30, effect: s=>{s.energy =100} },
+      { id:"xlfood",  name:"Премиум-корм XL", type:"consumable", price:80, effect: s=>{s.satiety=100; s.mood=clamp01(s.mood+10)} },
+      { id:"bow",   name:"Бантик", type:"premium", price:null },
+      { id:"hat",   name:"Шляпа джентльмена", type:"premium", price:null },
+      { id:"glasses",name:"Очки звезды", type:"premium", price:null },
+    ];
+
+    function buildShop(){
+      const root = byId("shopList"); root.innerHTML = "";
+      SHOP.forEach(it=>{
+        const row = document.createElement("div"); row.className="item";
+        const meta = document.createElement("div"); meta.className="meta";
+        const title = document.createElement("div"); title.textContent = it.name;
+        const sub = document.createElement("div"); sub.className="muted"; sub.textContent = it.type==="consumable"?"Расходник":"Аксессуар";
+        meta.append(title, sub);
+        const act = document.createElement("button"); act.className="btn";
+        if(it.type==="consumable"){
+          act.textContent = `Купить — ${it.price}🟡`;
+          act.onclick = ()=>{
+            if(state.seeds>=it.price){
+              state.seeds -= it.price;
+              it.effect(state);
+              save(); render();
+              tg?.HapticFeedback?.notificationOccurred?.("success");
+            } else tg?.showPopup?.({title:"Недостаточно Seeds", message:"Заработай ещё в мини-игре или квестах."})
+          }
+        }else{
+          const badge = document.createElement("span"); badge.className="badge"; badge.textContent="Премиум";
+          title.append(" "); title.append(badge);
+          act.textContent = "Получить";
+          act.onclick = ()=>{
+            // до подключения ЮKassa — просто показать заглушку
+            tg?.showPopup?.({title:"Скоро", message:"Премиум-аксессуары будут доступны после подключения оплаты."})
+          }
+        }
+        row.append(meta, act);
+        root.append(row);
+      });
+    }
+
+    function buildInv(){
+      const root = byId("invList"); root.innerHTML = "";
+      if(!state.accessories.length){
+        const empty = document.createElement("div"); empty.className="muted pad"; empty.textContent="Пусто. Купи аксессуары в магазине.";
+        root.append(empty); return;
+      }
+      state.accessories.forEach(a=>{
+        const row = document.createElement("div"); row.className="item";
+        row.innerHTML = `<div class="meta"><div>${a}</div><div class="muted">Аксессуар</div></div>`;
+        const btn = document.createElement("button"); btn.className="btn"; btn.textContent="Надеть";
+        btn.onclick = ()=> tg?.showPopup?.({title:"Ок", message:`Аксессуар «${a}» надет (визуал подключим позже).`});
+        row.append(btn); byId("invList").append(row);
+      });
+    }
+
+    // ====== QUESTS ======
+    const QUESTS = [
+      { id:"q1", title:"Накорми хомяка 1 раз", reward:20, check: s=> s.satiety===100 },
+      { id:"q2", title:"Полная энергия",        reward:15, check: s=> s.energy===100 },
+      { id:"q3", title:"Настроение ≥ 90%",      reward:15, check: s=> s.mood>=90 },
+    ];
+    function buildQuests(){
+      const root = byId("questsList"); root.innerHTML="";
+      QUESTS.forEach(q=>{
+        const row = document.createElement("div"); row.className="item";
+        row.innerHTML = `<div class="meta"><div>${q.title}</div><div class="muted">+${q.reward} Seeds</div></div>`;
+        const btn = document.createElement("button"); btn.className="btn"; btn.textContent="Получить";
+        btn.onclick = ()=>{
+          if(q.check(state)){
+            state.seeds += q.reward; save(); render();
+            tg?.HapticFeedback?.notificationOccurred?.("success");
+          } else tg?.showPopup?.({title:"Ещё нет", message:"Условие квеста пока не выполнено."})
+        }
+        row.append(btn); root.append(row);
+      })
+    }
+
+    // ====== MINI GAME ======
+    let gameTimer=null, gameLeft=0, clicks=0;
+    const area = byId("clickArea");
+    byId("startMini").onclick = ()=>{
+      clicks=0; gameLeft=10;
+      byId("clickScore").textContent=clicks;
+      byId("clickTime").textContent=gameLeft;
+      area.style.pointerEvents="auto";
+      gameTimer && clearInterval(gameTimer);
+      gameTimer = setInterval(()=>{
+        gameLeft--; byId("clickTime").textContent=gameLeft;
+        if(gameLeft<=0){
+          clearInterval(gameTimer); area.style.pointerEvents="none";
+          const reward = Math.max(5, Math.floor(clicks/5));
+          state.seeds += reward; save(); render();
+          tg?.showPopup?.({title:"Раунд завершён", message:`Кликов: ${clicks}\nНаграда: +${reward} Seeds`})
+        }
+      },1000);
+    }
+    area.onclick=()=>{ if(gameLeft>0){ clicks++; byId("clickScore").textContent=clicks } }
+
+    // ====== LEADERBOARD (local) ======
+    function loadLB(){ try{ return JSON.parse(localStorage.getItem(lbKey)||"[]") }catch{return[]} }
+    function saveLB(list){ localStorage.setItem(lbKey, JSON.stringify(list)) }
+    function pushLB(score){
+      const list = loadLB();
+      const name = (tg?.initDataUnsafe?.user?.first_name || "Игрок");
+      list.push({ name, score, ts:Date.now() });
+      list.sort((a,b)=> b.score-a.score);
+      saveLB(list.slice(0,20));
+    }
+    function buildLB(){
+      const root = byId("lbList"); root.innerHTML="";
+      const list = loadLB();
+      if(!list.length){ root.innerHTML = `<div class="muted pad">Нет записей. Сыграй в мини-игру!</div>`; return }
+      list.forEach((r,i)=>{
+        const row = document.createElement("div"); row.className="item";
+        row.innerHTML = `<div class="meta"><div>#${i+1} — ${r.name}</div><div class="muted">${new Date(r.ts).toLocaleString()}</div></div><b>${r.score}</b>`;
+        root.append(row);
+      });
+    }
+    // добавим запись после каждого раунда
+    area.addEventListener("click", ()=>{
+      if(gameLeft===0 && clicks>0){
+        pushLB(clicks); clicks=0;
+      }
+    });
+
+    // ====== ADMIN (only creator) ======
+    function buildAdmin(){
+      const wrap = byId("adminWrap"); wrap.innerHTML="";
+      if(+userId !== CREATOR_ID){ wrap.innerHTML=`<div class="muted">Доступно только создателю.</div>`; return }
+      const block = document.createElement("div");
+      block.innerHTML = `
+        <div class="row" style="margin-bottom:10px">
+          <input id="giveAmount" value="100" class="panel" style="flex:1;outline:none;color:var(--text)" />
+          <button class="btn success" id="giveSeeds">Выдать</button>
+        </div>
+        <div class="row">
+          <select id="accSel" class="panel" style="flex:1;outline:none;color:var(--text)">
+            <option value="Бантик">Бантик</option>
+            <option value="Шляпа джентльмена">Шляпа джентльмена</option>
+            <option value="Очки звезды">Очки звезды</option>
+          </select>
+          <button class="btn" id="giveAcc">Выдать</button>
+        </div>
+        <div class="muted" style="margin-top:8px">Это не донат, а удобный инструмент создателя. Видишь только ты.</div>
+      `;
+      wrap.append(block);
+      byId("giveSeeds").onclick = ()=>{
+        const n = Number(byId("giveAmount").value)||0;
+        state.seeds += Math.max(0,n); save(); render(); tg?.HapticFeedback?.notificationOccurred?.("success")
+      }
+      byId("giveAcc").onclick = ()=>{
+        const v = byId("accSel").value;
+        if(!state.accessories.includes(v)) state.accessories.push(v);
+        save(); buildInv(); tg?.HapticFeedback?.notificationOccurred?.("success")
+      }
+    }
+
+    // ====== OPENERS ======
+    byId("openShop").onclick       = ()=>{ buildShop(); open("modalShop") }
+    byId("openInv").onclick        = ()=>{ buildInv(); open("modalInv") }
+    byId("openQuests").onclick     = ()=>{ buildQuests(); open("modalQuests") }
+    byId("openMini").onclick       = ()=>{ open("modalMini") }
+    byId("openLeaderboard").onclick= ()=>{ buildLB(); open("modalLb") }
+    byId("openAdmin").onclick      = ()=>{ buildAdmin(); open("modalAdmin") }
+
+    // ====== 3D SCENE ======
+    const HAMSTER_GLB = encodeURI("./the_hamster_who_got_tired_of_the_wheel (1).glb"); // или "./hamster.glb"
+    const canvas = document.getElementById("scene");
+    const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+    camera.position.set(0, 0.6, 2.1);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableZoom = false; controls.enablePan = false; controls.autoRotate = true; controls.autoRotateSpeed = 1.4;
+
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x223344, 0.9); scene.add(hemi);
+    const dir  = new THREE.DirectionalLight(0xffffff, 0.8); dir.position.set(2,2,2); scene.add(dir);
+
+    // «пол»
+    const g = new THREE.CircleGeometry(1.6, 48);
+    const m = new THREE.MeshStandardMaterial({color:0x26486f, metalness:.2, roughness:.8});
+    const floor = new THREE.Mesh(g, m); floor.rotation.x = -Math.PI/2; floor.position.y = -0.45; scene.add(floor);
 
     const loader = new GLTFLoader();
-    loader.load('./hamster.glb', (gltf) => {
-      const model = gltf.scene;
-      // Сделаем заметно крупнее
-      model.scale.setScalar(2.8);        // ↑ основной масштаб
+    let model;
+    loader.load(HAMSTER_GLB, (glb)=>{
+      model = glb.scene;
+      // НОРМ. РАЗМЕР И ПОЛОЖЕНИЕ
+      model.scale.set(2.8, 2.8, 2.8);
+      model.position.set(0, -0.35, 0);
       scene.add(model);
-      fitCameraToObject(model, 1.10);    // ↑ камера ближе
-
-      // лёгкая анимация
-      const clock = new THREE.Clock();
-      (function wiggle(){
-        const t = clock.getElapsedTime();
-        model.rotation.y = Math.sin(t * 0.6) * 0.22;
-        requestAnimationFrame(wiggle);
-      })();
-    }, undefined, (err)=>{
-      console.error('Ошибка загрузки hamster.glb', err);
-      const fb = new THREE.Mesh(
-        new THREE.SphereGeometry(1.1, 32, 32),
-        new THREE.MeshStandardMaterial({ color: 0xffc78f, roughness: .6 })
-      );
-      scene.add(fb); fitCameraToObject(fb, 1.2);
     });
 
-    const ro = new ResizeObserver(() => {
-      const w = container.clientWidth || 300;
-      const h = container.clientHeight || 200;
-      camera.aspect = w/h; camera.updateProjectionMatrix();
-      renderer.setSize(w, h);
-    });
-    ro.observe(container);
-
-    (function animate(){
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    })();
+    function resize(){
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix();
+    }
+    const ro = new ResizeObserver(resize); ro.observe(canvas);
+    function loop(){
+      requestAnimationFrame(loop); controls.update(); renderer.render(scene, camera)
+    }
+    resize(); loop();
   </script>
 </body>
 </html>
