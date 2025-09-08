@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tamagocho</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-  <!-- Three.js -->
+  <!-- Three.js (ESM) -->
   <script type="importmap">
   {
     "imports": {
@@ -18,81 +18,87 @@
   </script>
 
   <style>
-    body {
-      margin: 0;
-      font-family: system-ui, sans-serif;
-      background: #0d1117;
-      color: #fff;
+    :root{
+      --bg:#0d1117;
+      --card:#161b22;
+      --ink:#e6edf3;
+      --muted:#8b949e;
+      --btn:#21262d;
+      --btn-hover:#30363d;
+      --brand:#58a6ff;
+      --good:#3fb950;
+      --warn:#f0883e;
     }
-    .wrap {
-      max-width: 420px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-    .card {
-      background: #161b22;
-      border-radius: 16px;
-      padding: 12px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-    }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .buttons {
-      display: grid;
-      grid-template-columns: repeat(2,1fr);
-      gap: 12px;
-    }
-    .btn {
-      background: #21262d;
-      border-radius: 12px;
-      padding: 12px;
-      text-align: center;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .btn:hover { background: #30363d; }
 
-    /* 3D блок */
-    .pet3d {
-      width: 100%;
-      height: 360px;
-      border-radius: 16px;
-      overflow: hidden;
-      background: radial-gradient(120% 120% at 50% 90%, #2c4a72 0%, #141e2b 70%);
-      margin-bottom: 16px;
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
     }
-    #pet3d canvas { display:block; width:100%!important; height:100%!important; }
+    .wrap{max-width:420px;margin:0 auto;padding:16px}
+
+    .card{
+      background:var(--card);
+      border-radius:16px;
+      padding:12px;
+      box-shadow:0 10px 24px rgba(0,0,0,.35);
+      position:relative;
+    }
+    .header{
+      display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
+      font-weight:600;
+    }
+    #seeds{font-variant-numeric:tabular-nums}
+
+    /* 3D */
+    .pet3d{
+      width:100%;height:360px;border-radius:16px;overflow:hidden;
+      background: radial-gradient(120% 120% at 50% 90%, #2c4a72 0%, #141e2b 70%);
+      margin-bottom:16px;position:relative;z-index:0;
+    }
+    .pet3d canvas{display:block;width:100%!important;height:100%!important}
+    /* чтобы канвас не мешал кликам по другим зонам */
+    .pet3d{pointer-events:auto}
+    .buttons{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:8px}
+    .btn{
+      background:var(--btn);border-radius:12px;padding:12px;text-align:center;cursor:pointer;
+      transition:background .15s; user-select:none;
+    }
+    .btn:hover{background:var(--btn-hover)}
+    .btn:active{transform:translateY(1px)}
 
     /* Статусы */
-    .bars {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      margin-top: 12px;
+    .bars{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+    .bar{background:var(--btn);border-radius:10px;padding:8px;font-size:14px}
+    .bar span{display:block;margin-bottom:6px;color:var(--muted)}
+    .progress{height:6px;border-radius:4px;background:#3a3f44;overflow:hidden}
+    .progress>div{height:100%;background:var(--brand);width:50%}
+
+    /* -------- Модалки -------- */
+    .modal{
+      position:fixed;inset:0;display:none;place-items:center;
+      background:rgba(0,0,0,.45);
+      z-index:50;
     }
-    .bar {
-      background: #21262d;
-      border-radius: 8px;
-      padding: 6px;
-      font-size: 14px;
+    .modal.open{display:grid}
+    .sheet{
+      width:min(420px,90vw);max-height:85vh;overflow:auto;
+      background:var(--card);border-radius:16px;padding:12px;
+      box-shadow:0 18px 48px rgba(0,0,0,.5);animation:pop .15s ease;
     }
-    .bar span { display:block; margin-bottom: 4px; }
-    .progress {
-      height: 6px;
-      border-radius: 4px;
-      background: #444;
-      overflow:hidden;
-    }
-    .progress div {
-      height: 100%;
-      background: #58a6ff;
-      width: 50%;
-    }
+    @keyframes pop{from{transform:scale(.97);opacity:.6}to{transform:scale(1);opacity:1}}
+    .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .x{background:var(--btn);border:none;color:var(--ink);width:32px;height:32px;border-radius:10px;cursor:pointer}
+    .row{display:flex;align-items:center;justify-content:space-between;background:var(--btn);padding:10px;border-radius:10px;margin:8px 0}
+    .tag{font-size:12px;padding:2px 8px;border-radius:999px;background:#3a3f44;margin-left:8px}
+    .primary{background:var(--good);border:none;color:#04110a;border-radius:10px;padding:8px 12px;cursor:pointer}
+    .ghost{background:var(--btn);border:none;color:var(--ink);border-radius:10px;padding:8px 12px;cursor:pointer}
+    .muted{color:var(--muted)}
+    .grid2{display:grid;grid-template-columns:1fr auto;gap:8px}
+
+    .hidden{display:none!important}
   </style>
 </head>
 <body>
@@ -106,144 +112,389 @@
       <!-- 3D-хомяк -->
       <div id="pet3d" class="pet3d"></div>
 
-      <!-- Кнопки -->
+      <!-- кнопки -->
       <div class="buttons">
-        <div class="btn">🛒 Магазин</div>
-        <div class="btn">🎒 Инвентарь</div>
-        <div class="btn">📖 Квесты</div>
-        <div class="btn">🎮 Мини-игра</div>
-        <div class="btn">🏆 Лидерборд</div>
-        <div class="btn">⚙️ Админ</div>
+        <div class="btn" data-modal="shop">🛒 Магазин</div>
+        <div class="btn" data-modal="inv">🎒 Инвентарь</div>
+        <div class="btn" data-modal="quests">📖 Квесты</div>
+        <div class="btn" data-modal="mini">🎮 Мини-игра</div>
+        <div class="btn" data-modal="top">🏆 Лидерборд</div>
+        <div class="btn" data-modal="admin">⚙️ Админ</div>
       </div>
 
-      <!-- Статусы -->
+      <!-- статусы -->
       <div class="bars">
         <div class="bar">
           <span>❤️ Сытость</span>
-          <div class="progress"><div id="hunger" style="width:80%"></div></div>
+          <div class="progress"><div id="bar_hunger" style="width:80%"></div></div>
         </div>
         <div class="bar">
           <span>⚡ Энергия</span>
-          <div class="progress"><div id="energy" style="width:75%"></div></div>
+          <div class="progress"><div id="bar_energy" style="width:75%"></div></div>
         </div>
         <div class="bar">
           <span>😊 Настроение</span>
-          <div class="progress"><div id="mood" style="width:90%"></div></div>
+          <div class="progress"><div id="bar_mood" style="width:90%"></div></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- three.js код -->
+  <!-- --------- МОДАЛКИ --------- -->
+
+  <!-- Магазин -->
+  <div class="modal" id="modal_shop" role="dialog" aria-modal="true">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 style="margin:6px 0">🛒 Магазин</h3>
+        <button class="x" data-close>✖</button>
+      </div>
+
+      <div class="row">
+        <div>
+          <div><b>Миска семечек</b></div>
+          <div class="muted">Восстановит сытость на 100%</div>
+        </div>
+        <button class="primary" data-buy="food" data-price="30">Купить — 30</button>
+      </div>
+
+      <div class="row">
+        <div>
+          <div><b>Пойилка</b></div>
+          <div class="muted">Восстановит энергию на 100%</div>
+        </div>
+        <button class="primary" data-buy="energy" data-price="30">Купить — 30</button>
+      </div>
+
+      <div class="row">
+        <div>
+          <div><b>Премиум-корм XL</b> <span class="tag">Премиум</span></div>
+          <div class="muted">Сразу полностью восстановит все параметры</div>
+        </div>
+        <button class="ghost" disabled title="Подключим позже">Получить</button>
+      </div>
+
+      <div class="row">
+        <div>
+          <div><b>Бантик</b> <span class="tag">Аксессуар</span></div>
+        </div>
+        <button class="primary" data-acc="bow" data-price="40">Купить — 40</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Инвентарь -->
+  <div class="modal" id="modal_inv">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 style="margin:6px 0">🎒 Инвентарь</h3>
+        <button class="x" data-close>✖</button>
+      </div>
+      <div id="inv_list" class="muted">Пока пусто…</div>
+    </div>
+  </div>
+
+  <!-- Квесты -->
+  <div class="modal" id="modal_quests">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 style="margin:6px 0">📖 Квесты</h3>
+        <button class="x" data-close>✖</button>
+      </div>
+      <div class="row">
+        <div>
+          <div><b>Угости хомяка</b></div>
+          <div class="muted">Сыграй в кликер и набери 50 очков</div>
+        </div>
+        <button class="primary" data-start-mini>Начать</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Мини-игра (кликер) -->
+  <div class="modal" id="modal_mini">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 style="margin:6px 0">🎮 Мини-игра | Кликер</h3>
+        <button class="x" data-close>✖</button>
+      </div>
+      <p class="muted">Кликай по зоне ниже как можно быстрее за 10 секунд. Награда — Seeds.</p>
+      <div id="click_area" style="height:200px;border-radius:12px;background:#0f1720"></div>
+      <div class="grid2" style="margin-top:8px">
+        <div class="muted">Очки: <b id="score">0</b> · Время: <b id="time">10</b></div>
+        <button class="primary" id="start_game">▶ Старт</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Лидерборд -->
+  <div class="modal" id="modal_top">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 style="margin:6px 0">🏆 Лидерборд (локальный)</h3>
+        <button class="x" data-close>✖</button>
+      </div>
+      <ol id="top_list" style="margin:0;padding-left:18px"></ol>
+      <p class="muted" style="margin-top:8px">Глобальный включится автоматически, когда добавим бэкенд.</p>
+    </div>
+  </div>
+
+  <!-- Админ (видно только ID 1907547038) -->
+  <div class="modal" id="modal_admin">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h3 style="margin:6px 0">⚙️ Админ-панель (создатель)</h3>
+        <button class="x" data-close>✖</button>
+      </div>
+      <div class="row">
+        <div class="grid2" style="width:100%">
+          <input id="give_seeds" type="number" value="100" min="1"
+                 style="background:var(--btn);border:none;color:var(--ink);border-radius:10px;padding:10px">
+          <button class="primary" id="btn_give_seeds">Выдать</button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="grid2" style="width:100%">
+          <select id="acc_select" style="background:var(--btn);color:var(--ink);border:none;border-radius:10px;padding:10px">
+            <option value="bow">Бантик</option>
+          </select>
+          <button class="primary" id="btn_give_acc">Выдать</button>
+        </div>
+      </div>
+      <p class="muted">Это не донат, а удобный инструмент создателя. Видишь только ты.</p>
+    </div>
+  </div>
+
+  <!-- ---------------- three.js + ЛОГИКА UI ---------------- -->
   <script type="module">
+    /* ----------------- three.js ----------------- */
     import * as THREE from "three";
     import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
     import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
     const mount = document.getElementById("pet3d");
-    let renderer, scene, camera, controls, hamster;
+    let renderer, scene, camera, controls, hamster, ground;
 
-    // сцена
     scene = new THREE.Scene();
-
-    // камера
     const aspect = mount.clientWidth / mount.clientHeight;
     camera = new THREE.PerspectiveCamera(45, aspect, 0.01, 100);
     camera.position.set(0.6, 0.35, 1.2);
 
-    // рендерер
-    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true;
     mount.appendChild(renderer.domElement);
 
-    // свет
     scene.add(new THREE.HemisphereLight(0xffffff, 0x101018, 1.1));
     const dir = new THREE.DirectionalLight(0xffffff, 1.6);
-    dir.position.set(1.2, 1.6, 1.0);
+    dir.position.set(1.2, 1.6, 1);
     dir.castShadow = true;
-    dir.shadow.mapSize.set(1024, 1024);
+    dir.shadow.mapSize.set(1024,1024);
     scene.add(dir);
 
-    // земля для тени
     const groundGeo = new THREE.CircleGeometry(0.6, 64);
-    const groundMat = new THREE.ShadowMaterial({ opacity: 0.28 });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI/2;
-    ground.receiveShadow = true;
+    const groundMat = new THREE.ShadowMaterial({ opacity: .28 });
+    ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI/2; ground.receiveShadow = true;
     scene.add(ground);
 
-    // контролы
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.enablePan = false;
-    controls.minDistance = 0.5;
-    controls.maxDistance = 2.0;
-    controls.minPolarAngle = Math.PI * 0.2;
-    controls.maxPolarAngle = Math.PI * 0.49;
+    controls.minDistance = .5; controls.maxDistance = 2;
+    controls.minPolarAngle = Math.PI*.2;
+    controls.maxPolarAngle = Math.PI*.49;
 
-    // загрузка модели
     const loader = new GLTFLoader();
     const MODEL_URL = "./hamster.glb";
-
     loader.load(MODEL_URL, (gltf)=>{
       hamster = gltf.scene;
-      hamster.traverse(o=>{
-        if(o.isMesh){ o.castShadow = true; o.receiveShadow = true; }
-      });
+      hamster.traverse(o=>{ if(o.isMesh){ o.castShadow = true; o.receiveShadow = true; }});
       scene.add(hamster);
       fitAndCenter(hamster);
       animate();
-    }, undefined, (err)=>{
-      console.error("GLB load error:", err);
-    });
+    }, undefined, (e)=>console.error("GLB load error", e));
 
-    // центрирование и масштаб
-    function fitAndCenter(object){
-      const box = new THREE.Box3().setFromObject(object);
+    function fitAndCenter(obj){
+      const box = new THREE.Box3().setFromObject(obj);
       const size = box.getSize(new THREE.Vector3());
       const center = box.getCenter(new THREE.Vector3());
+      obj.position.sub(center);
+      const scale = .45 / size.y;
+      obj.scale.setScalar(scale);
 
-      object.position.sub(center);
-      const targetHeight = 0.45;
-      const scale = targetHeight / size.y;
-      object.scale.setScalar(scale);
-
-      const box2 = new THREE.Box3().setFromObject(object);
-      const size2 = box2.getSize(new THREE.Vector3());
+      const box2 = new THREE.Box3().setFromObject(obj);
       const sphere = box2.getBoundingSphere(new THREE.Sphere());
-
-      const fov = camera.fov * (Math.PI/180);
+      const fov = camera.fov * Math.PI/180;
       const dist = Math.max(
-        size2.y / (2 * Math.tan(fov/2)),
-        size2.x / (2 * Math.tan(fov/2))
+        box2.getSize(new THREE.Vector3()).y / (2*Math.tan(fov/2)),
+        box2.getSize(new THREE.Vector3()).x / (2*Math.tan(fov/2))
       );
-      camera.position.set(sphere.center.x+dist*0.6, sphere.center.y+dist*0.35, sphere.center.z+dist*1.2);
-      controls.target.copy(sphere.center);
-      controls.update();
-
+      camera.position.set(sphere.center.x+dist*.6, sphere.center.y+dist*.35, sphere.center.z+dist*1.2);
+      controls.target.copy(sphere.center); controls.update();
       ground.position.set(sphere.center.x, box2.min.y-0.001, sphere.center.z);
       ground.scale.set(1.2,1.2,1.2);
     }
 
-    // цикл
     function animate(){
       requestAnimationFrame(animate);
       controls.update();
       renderer.render(scene, camera);
     }
-
-    // ресайз
     function onResize(){
       const w = mount.clientWidth, h = mount.clientHeight;
-      camera.aspect = w/h;
-      camera.updateProjectionMatrix();
+      camera.aspect = w/h; camera.updateProjectionMatrix();
       renderer.setSize(w,h);
     }
     addEventListener("resize", onResize);
     new ResizeObserver(onResize).observe(mount);
+
+    /* ----------------- ИГРОВАЯ ЛОГИКА ----------------- */
+    const tg = window.Telegram?.WebApp;
+    tg && tg.ready && tg.ready();
+
+    const CREATOR_ID = 1907547038; // твой ID
+    const seedsEl = document.getElementById("seeds");
+    const bars = {
+      hunger: document.getElementById("bar_hunger"),
+      energy: document.getElementById("bar_energy"),
+      mood: document.getElementById("bar_mood"),
+    };
+
+    // состояние
+    const S = JSON.parse(localStorage.getItem("tamagocho_state") || "{}");
+    const state = {
+      seeds: S.seeds ?? 0,
+      hunger: S.hunger ?? 0.8,
+      energy: S.energy ?? 0.75,
+      mood:   S.mood   ?? 0.9,
+      inv:    S.inv    ?? [],
+      top:    S.top    ?? [],
+      userId: tg?.initDataUnsafe?.user?.id ?? null
+    };
+    save(); render();
+
+    function save(){ localStorage.setItem("tamagocho_state", JSON.stringify(state)); }
+    function render(){
+      seedsEl.textContent = state.seeds;
+      bars.hunger.style.width = Math.round(state.hunger*100)+"%";
+      bars.energy.style.width = Math.round(state.energy*100)+"%";
+      bars.mood.style.width   = Math.round(state.mood*100)+"%";
+      // инвентарь
+      const inv = state.inv.length ? `<ul style="margin:0;padding-left:18px">${state.inv.map(i=>`<li>${i}</li>`).join("")}</ul>` : "Пока пусто…";
+      document.getElementById("inv_list").innerHTML = inv;
+      // топ
+      const topList = document.getElementById("top_list");
+      topList.innerHTML = (state.top.slice(0,10).map((t,i)=>`<li>${t.name}: ${t.score}</li>`).join("")) || "<span class='muted'>Пока нет записей…</span>";
+      // админ доступ
+      document.querySelector('[data-modal="admin"]').parentElement.parentElement
+      const adminBtn = document.querySelector('[data-modal="admin"]');
+      if (state.userId !== CREATOR_ID) adminBtn.classList.add("hidden"); else adminBtn.classList.remove("hidden");
+    }
+
+    /* --------- модалки --------- */
+    const modals = {
+      shop:  document.getElementById("modal_shop"),
+      inv:   document.getElementById("modal_inv"),
+      quests:document.getElementById("modal_quests"),
+      mini:  document.getElementById("modal_mini"),
+      top:   document.getElementById("modal_top"),
+      admin: document.getElementById("modal_admin"),
+    };
+    document.querySelectorAll(".btn[data-modal]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        const id = b.dataset.modal;
+        openModal(modals[id]);
+      });
+    });
+    document.querySelectorAll("[data-close]").forEach(x=>{
+      x.addEventListener("click", ()=>closeModal(x.closest(".modal")));
+    });
+    Object.values(modals).forEach(m=>{
+      m.addEventListener("click", e=>{ if(e.target === m) closeModal(m); });
+    });
+    function openModal(el){ el.classList.add("open"); }
+    function closeModal(el){ el.classList.remove("open"); }
+
+    /* --------- магазин --------- */
+    document.querySelectorAll("[data-buy]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const type = btn.dataset.buy;
+        const price = +btn.dataset.price;
+        if (state.seeds < price) { toast("Недостаточно Seeds"); return; }
+        state.seeds -= price;
+        if (type==="food") state.hunger = 1;
+        if (type==="energy") state.energy = 1;
+        save(); render();
+        toast("Куплено!");
+      });
+    });
+    document.querySelectorAll("[data-acc]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const price = +btn.dataset.price;
+        const name = btn.dataset.acc;
+        if (state.seeds < price) { toast("Недостаточно Seeds"); return; }
+        state.seeds -= price;
+        state.inv.push("Аксессуар: "+name);
+        save(); render();
+        toast("Аксессуар добавлен в инвентарь");
+      });
+    });
+
+    /* --------- квесты: старт мини-игры --------- */
+    document.querySelectorAll("[data-start-mini]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        closeModal(modals.quests);
+        openModal(modals.mini);
+      });
+    });
+
+    /* --------- мини-игра (кликер) --------- */
+    let timer=null, timeLeft=10, score=0;
+    const elScore = document.getElementById("score");
+    const elTime  = document.getElementById("time");
+    const area = document.getElementById("click_area");
+    document.getElementById("start_game").addEventListener("click", startGame);
+    area.addEventListener("click", ()=>{ if(timer){ score++; elScore.textContent=score; } });
+
+    function startGame(){
+      score=0; timeLeft=10; elScore.textContent=score; elTime.textContent=timeLeft;
+      if (timer) { clearInterval(timer); timer=null; }
+      timer = setInterval(()=>{
+        timeLeft--; elTime.textContent=timeLeft;
+        if (timeLeft<=0){ clearInterval(timer); timer=null; finishGame(); }
+      },1000);
+    }
+    function finishGame(){
+      const reward = Math.min(100, score); // простая формула
+      state.seeds += reward;
+      // локальный топ
+      state.top.unshift({name:"Ты", score});
+      state.top = state.top.slice(0,20);
+      save(); render();
+      toast(`+${reward} Seeds за ${score} кликов`);
+    }
+
+    /* --------- админка --------- */
+    document.getElementById("btn_give_seeds").addEventListener("click", ()=>{
+      if (state.userId !== CREATOR_ID) return toast("Нет доступа");
+      const val = Math.max(1, +document.getElementById("give_seeds").value||0);
+      state.seeds += val; save(); render(); toast(`Выдал ${val} Seeds`);
+    });
+    document.getElementById("btn_give_acc").addEventListener("click", ()=>{
+      if (state.userId !== CREATOR_ID) return toast("Нет доступа");
+      const v = document.getElementById("acc_select").value;
+      state.inv.push("Аксессуар: "+v); save(); render(); toast("Аксессуар выдан");
+    });
+
+    /* --------- утилиты --------- */
+    function toast(text){
+      if (tg?.showPopup){ tg.showPopup({title:"", message:text, buttons:[{type:"ok"}]}); return; }
+      // fallback
+      alert(text);
+    }
   </script>
 </body>
 </html>
